@@ -11,6 +11,7 @@ export function AudioPlayer(): React.JSX.Element {
   const tree = useLibrary((s) => s.tree)
   const selectAudio = useLibrary((s) => s.selectAudio)
 
+  const isPlaying = usePlayer((s) => s.isPlaying)
   const setPlaying = usePlayer((s) => s.setPlaying)
   const setCurrentTimeMs = usePlayer((s) => s.setCurrentTimeMs)
   const setDurationMs = usePlayer((s) => s.setDurationMs)
@@ -54,29 +55,57 @@ export function AudioPlayer(): React.JSX.Element {
     setPlaying(false)
   }, [selectedAudio, setCurrentTimeMs, setDurationMs, setPlaying])
 
+  const shuffle = usePlayer((s) => s.shuffle)
+  const loopMode = usePlayer((s) => s.loopMode)
+
   const onNext = (): void => {
     const list = audioChildren(findDirNode(tree, parentDir(selectedAudio)))
     if (!selectedAudio || list.length === 0) return
     const idx = list.findIndex((n) => n.path === selectedAudio)
-    const next = list[(idx + 1 + list.length) % list.length]
+    
+    let nextIdx: number
+    if (shuffle) {
+      nextIdx = Math.floor(Math.random() * list.length)
+      // Try to avoid the same song if list > 1
+      if (nextIdx === idx && list.length > 1) {
+        nextIdx = (nextIdx + 1) % list.length
+      }
+    } else {
+      nextIdx = (idx + 1) % list.length
+    }
+    
+    const next = list[nextIdx]
     selectAudio(next.path)
     void window.soundbox.setState({ lastAudioPath: next.path })
   }
+
   const onPrev = (): void => {
     const list = audioChildren(findDirNode(tree, parentDir(selectedAudio)))
     if (!selectedAudio || list.length === 0) return
     const idx = list.findIndex((n) => n.path === selectedAudio)
-    const prev = list[(idx - 1 + list.length) % list.length]
+    
+    let prevIdx: number
+    if (shuffle) {
+      prevIdx = Math.floor(Math.random() * list.length)
+      if (prevIdx === idx && list.length > 1) {
+        prevIdx = (prevIdx + 1) % list.length
+      }
+    } else {
+      prevIdx = (idx - 1 + list.length) % list.length
+    }
+    
+    const prev = list[prevIdx]
     selectAudio(prev.path)
     void window.soundbox.setState({ lastAudioPath: prev.path })
   }
 
   return (
-    <div className="flex flex-col gap-2 border-b bg-card/40 px-4 py-3">
+    <div className="flex flex-col gap-2 border-b bg-background px-4 py-4">
       <audio
         ref={audioRef}
         src={selectedAudio ? pathToLocalUrl(selectedAudio) : undefined}
         preload="metadata"
+        autoPlay={isPlaying}
         onPlay={() => {
           console.log('[AudioPlayer] play')
           setPlaying(true)
@@ -87,8 +116,19 @@ export function AudioPlayer(): React.JSX.Element {
         }}
         onEnded={() => {
           console.log('[AudioPlayer] ended')
-          setPlaying(false)
-          onNext()
+          if (loopMode === 'one') {
+            const a = audioRef.current
+            if (a) {
+              a.currentTime = 0
+              a.play().catch(console.error)
+            }
+          } else if (loopMode === 'all' || !shuffle) {
+            onNext()
+          } else {
+            // Case for shuffle but loop off? Usually shuffle implies some form of repeat or just stops.
+            // Many players continue to next shuffle even if loop is off.
+            onNext()
+          }
         }}
         onError={(e) => {
           const err = e.currentTarget.error
@@ -100,7 +140,12 @@ export function AudioPlayer(): React.JSX.Element {
         }}
         onLoadStart={() => console.log('[AudioPlayer] loadstart', selectedAudio)}
         onLoadedMetadata={() => console.log('[AudioPlayer] loadedmetadata')}
-        onCanPlay={() => console.log('[AudioPlayer] canplay')}
+        onCanPlay={() => {
+          console.log('[AudioPlayer] canplay')
+          if (isPlaying) {
+            audioRef.current?.play().catch(console.error)
+          }
+        }}
         onTimeUpdate={(e) => setCurrentTimeMs(secondsToMs(e.currentTarget.currentTime))}
         onDurationChange={(e) => {
           const d = e.currentTarget.duration
@@ -121,6 +166,7 @@ export function AudioPlayer(): React.JSX.Element {
     </div>
   )
 }
+
 
 function parentDir(path: string | null): string | null {
   if (!path) return null
