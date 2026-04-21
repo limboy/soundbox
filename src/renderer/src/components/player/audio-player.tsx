@@ -59,6 +59,22 @@ export function AudioPlayer(): React.JSX.Element {
     setPlaying(false)
   }, [selectedAudio, setCurrentTimeMs, setDurationMs, setPlaying])
 
+  useEffect(() => {
+    if (!selectedAudio) return
+    const checkCurrent = async (): Promise<void> => {
+      const info = await window.soundbox.getPathInfo(selectedAudio).catch(() => null)
+      if (!info) {
+        selectAudio(null)
+        void window.soundbox.setState({ lastAudioPath: null })
+      }
+    }
+    const handleFocus = (): void => {
+      void checkCurrent()
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [selectedAudio, selectAudio])
+
   const shuffle = usePlayer((s) => s.shuffle)
   const loopMode = usePlayer((s) => s.loopMode)
 

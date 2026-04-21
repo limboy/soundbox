@@ -36,6 +36,7 @@ export function AudioList(): React.JSX.Element {
   const selectedCollectionId = useLibrary((s) => s.selectedCollectionId)
   const selectedAudio = useLibrary((s) => s.selectedAudio)
   const selectAudio = useLibrary((s) => s.selectAudio)
+  const removeItemsFromSelectedCollection = useLibrary((s) => s.removeItemsFromSelectedCollection)
   const addItemsToSelectedCollection = useLibrary((s) => s.addItemsToSelectedCollection)
 
   const [isDragOver, setIsDragOver] = useState(false)
@@ -53,18 +54,25 @@ export function AudioList(): React.JSX.Element {
 
   useEffect(() => {
     let cancelled = false
-    const pathsToProbe = rows.filter((p) => {
-      const hasDuration = p in trackDurations
-      const hasMeta = !isMusic || p in trackMeta
-      return !hasDuration || !hasMeta
-    })
 
-    if (pathsToProbe.length === 0) return
+    const checkAll = async (): Promise<void> => {
+      const pathsToCheck = [...rows]
+      if (pathsToCheck.length === 0) return
 
-      ; (async () => {
-        for (const p of pathsToProbe) {
-          if (cancelled) return
+      const missingPaths: string[] = []
+      for (const p of pathsToCheck) {
+        if (cancelled) return
 
+        const info = await window.soundbox.getPathInfo(p).catch(() => null)
+        if (!info) {
+          missingPaths.push(p)
+          continue
+        }
+
+        const hasDuration = p in trackDurations
+        const hasMeta = !isMusic || p in trackMeta
+
+        if (!hasDuration || !hasMeta) {
           let d = trackDurations[p]
           if (!(p in trackDurations)) {
             d = await window.soundbox.probeDuration(p).catch(() => null)
@@ -78,10 +86,24 @@ export function AudioList(): React.JSX.Element {
             setTrackMeta(p, m || { artist: 'Unknown', album: 'Unknown', title: basename(p) })
           }
         }
-      })()
+      }
+
+      if (missingPaths.length > 0 && !cancelled) {
+        removeItemsFromSelectedCollection(missingPaths)
+      }
+    }
+
+    void checkAll()
+
+    const handleFocus = (): void => {
+      void checkAll()
+    }
+
+    window.addEventListener('focus', handleFocus)
 
     return () => {
       cancelled = true
+      window.removeEventListener('focus', handleFocus)
     }
   }, [rows, isMusic])
 

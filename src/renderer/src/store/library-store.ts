@@ -15,6 +15,7 @@ type LibraryState = {
   setTrackDuration: (path: string, duration: number | null) => void
   selectCollection: (id: string | null) => void
   addItemsToSelectedCollection: (paths: string[]) => void
+  removeItemsFromSelectedCollection: (paths: string[]) => void
   selectAudio: (path: string | null) => void
   setLoading: (loading: boolean) => void
   setError: (err: string | null) => void
@@ -54,6 +55,26 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     })
     set({ collections: next })
     void window.soundbox.setState({ collections: next })
+  },
+  removeItemsFromSelectedCollection: (paths) => {
+    const { collections, selectedCollectionId, selectedAudio } = get()
+    if (!selectedCollectionId) return
+    const pathSet = new Set(paths)
+    
+    let nextSelectedAudio = selectedAudio
+    if (selectedAudio && pathSet.has(selectedAudio)) {
+      nextSelectedAudio = null
+    }
+
+    const next = collections.map(c => {
+      if (c.id === selectedCollectionId) {
+        return { ...c, items: c.items.filter(p => !pathSet.has(p)) }
+      }
+      return c
+    })
+    
+    set({ collections: next, selectedAudio: nextSelectedAudio })
+    void window.soundbox.setState({ collections: next, lastAudioPath: nextSelectedAudio })
   },
   selectAudio: (selectedAudio) => set({ selectedAudio }),
   setLoading: (loading) => set({ loading }),
