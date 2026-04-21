@@ -333,14 +333,14 @@ export function AudioList(): React.JSX.Element {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <Table className="min-w-full table-fixed">
-        <TableHeader className="sticky top-[156px] bg-background z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.1)]">
+      <Table className="min-w-full table-fixed border-collapse">
+        <TableHeader className="sticky top-[156px] z-20 bg-background">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className="group whitespace-nowrap relative border-r last:border-0 border-transparent hover:border-border/30 transition-colors"
+                  className="group whitespace-nowrap relative border-r last:border-0 border-transparent hover:border-border/30 transition-colors shadow-[inset_0_-1px_0_var(--border)]"
                   style={{ width: header.getSize() }}
                 >
                   {header.isPlaceholder

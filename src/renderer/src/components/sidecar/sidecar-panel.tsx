@@ -115,7 +115,7 @@ export function SidecarPanel(): React.JSX.Element {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col border-l">
+    <div className="flex h-full min-h-0 flex-col">
       {inner}
     </div>
   )
