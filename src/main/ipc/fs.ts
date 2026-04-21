@@ -8,7 +8,11 @@ import { join } from 'node:path'
 import { writeFile, mkdir } from 'node:fs/promises'
 import crypto from 'node:crypto'
 
-const durationCache = new Map<string, number | null>()
+import { getCachedMetadata, setCachedMetadata } from '../lib/metadata-cache'
+
+// No longer needed since we have persistent cache
+// const durationCache = new Map<string, number | null>()
+
 
 export function registerFsIpc(): void {
   ipcMain.handle('soundbox:readTree', async (_e, root: string) => {
@@ -24,17 +28,29 @@ export function registerFsIpc(): void {
   })
 
   ipcMain.handle('soundbox:probeDuration', async (_e, path: string) => {
-    if (durationCache.has(path)) return durationCache.get(path) ?? null
+    const cached = await getCachedMetadata(path)
+    if (cached !== null) return cached.duration
+
     try {
       const meta = await parseFile(path, { duration: true, skipCovers: true })
       const ms =
         typeof meta.format.duration === 'number'
           ? Math.round(meta.format.duration * 1000)
           : null
-      durationCache.set(path, ms)
+      
+      const artist = meta.common.artist || meta.common.albumartist || (meta.common.artists && meta.common.artists[0]) || 'Unknown'
+      const album = meta.common.album || 'Unknown'
+      const title = meta.common.title || 'Unknown'
+
+      await setCachedMetadata(path, {
+        duration: ms,
+        artist: artist.trim(),
+        album: album.trim(),
+        title: title.trim()
+      })
+
       return ms
     } catch {
-      durationCache.set(path, null)
       return null
     }
   })
@@ -52,16 +68,36 @@ export function registerFsIpc(): void {
   })
 
   ipcMain.handle('soundbox:probeMetadata', async (_e, path: string) => {
+    const cached = await getCachedMetadata(path)
+    if (cached !== null) {
+      return {
+        artist: cached.artist,
+        album: cached.album,
+        title: cached.title
+      }
+    }
+
     try {
       const meta = await parseFile(path, { duration: true, skipCovers: true })
-      const artist = meta.common.artist || meta.common.albumartist || (meta.common.artists && meta.common.artists[0]) || 'Unknown'
-      const album = meta.common.album || 'Unknown'
-      const title = meta.common.title || 'Unknown'
       
+      const artist = (meta.common.artist || meta.common.albumartist || (meta.common.artists && meta.common.artists[0]) || 'Unknown').trim()
+      const album = (meta.common.album || 'Unknown').trim()
+      const title = (meta.common.title || 'Unknown').trim()
+      const ms = typeof meta.format.duration === 'number'
+        ? Math.round(meta.format.duration * 1000)
+        : null
+      
+      await setCachedMetadata(path, {
+        duration: ms,
+        artist,
+        album,
+        title
+      })
+
       return {
-        artist: artist.trim(),
-        album: album.trim(),
-        title: title.trim(),
+        artist,
+        album,
+        title,
       }
     } catch {
       return null
@@ -94,5 +130,5 @@ export function registerFsIpc(): void {
 }
 
 export function clearDurationCache(): void {
-  durationCache.clear()
+  // durationCache.clear()
 }

@@ -21,6 +21,7 @@ import { basename } from '@/lib/audio-extensions'
 import { msToClock } from '@/lib/format-time'
 import { cn } from '@/lib/utils'
 import { useLibrary } from '@/store/library-store'
+import { usePlayer } from '@/store/player-store'
 
 type AudioItem = {
   path: string
@@ -38,6 +39,7 @@ export function AudioList(): React.JSX.Element {
   const selectAudio = useLibrary((s) => s.selectAudio)
   const removeItemsFromSelectedCollection = useLibrary((s) => s.removeItemsFromSelectedCollection)
   const addItemsToSelectedCollection = useLibrary((s) => s.addItemsToSelectedCollection)
+  const setPlaying = usePlayer((s) => s.setPlaying)
 
   const [isDragOver, setIsDragOver] = useState(false)
   const trackMeta = useLibrary((s) => s.trackMeta)
@@ -372,6 +374,7 @@ export function AudioList(): React.JSX.Element {
                 onDoubleClick={() => {
                   selectAudio(row.original.path)
                   void window.soundbox.setState({ lastAudioPath: row.original.path })
+                  setPlaying(true)
                 }}
                 className={cn('cursor-pointer group', active && 'bg-accent/60')}
               >

@@ -11,6 +11,8 @@ import { startWatching, stopWatching } from './lib/watcher'
 import { clearDurationCache, registerFsIpc } from './ipc/fs'
 import { registerDialogIpc } from './ipc/dialog'
 import { registerStoreIpc } from './ipc/store'
+import { flushCache } from './lib/metadata-cache'
+
 
 registerLocalSchemePrivileged()
 
@@ -96,7 +98,13 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   stopWatching()
+  flushCache()
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
+
+app.on('before-quit', () => {
+  flushCache()
+})
+

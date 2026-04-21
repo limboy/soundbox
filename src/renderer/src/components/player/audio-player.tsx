@@ -24,6 +24,16 @@ export function AudioPlayer(): React.JSX.Element {
   const rate = usePlayer((s) => s.rate)
   const seekRequestMs = usePlayer((s) => s.seekRequestMs)
   const clearSeekRequest = usePlayer((s) => s.clearSeekRequest)
+  
+  useEffect(() => {
+    const a = audioRef.current
+    if (!a) return
+    if (isPlaying) {
+      if (a.paused) a.play().catch(console.error)
+    } else {
+      if (!a.paused) a.pause()
+    }
+  }, [isPlaying])
 
   useEffect(() => {
     const a = audioRef.current
@@ -56,8 +66,7 @@ export function AudioPlayer(): React.JSX.Element {
     if (!a) return
     setCurrentTimeMs(0)
     setDurationMs(0)
-    setPlaying(false)
-  }, [selectedAudio, setCurrentTimeMs, setDurationMs, setPlaying])
+  }, [selectedAudio, setCurrentTimeMs, setDurationMs])
 
   useEffect(() => {
     if (!selectedAudio) return
