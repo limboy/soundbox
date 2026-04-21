@@ -87,12 +87,24 @@ export function AudioPlayer(): React.JSX.Element {
   const shuffle = usePlayer((s) => s.shuffle)
   const loopMode = usePlayer((s) => s.loopMode)
 
-  const onNext = (): void => {
-    const list = activeCollection?.items ?? []
-    if (!selectedAudio || list.length === 0) return
-    const idx = list.indexOf(selectedAudio)
-    if (idx === -1) return
-    
+  const onNext = (forcePlay = false): void => {
+    let list = activeCollection?.items ?? []
+    let idx = selectedAudio ? list.indexOf(selectedAudio) : -1
+
+    // If not in active collection, search others
+    if (idx === -1 && selectedAudio) {
+      for (const c of collections) {
+        const i = c.items.indexOf(selectedAudio)
+        if (i !== -1) {
+          list = c.items
+          idx = i
+          break
+        }
+      }
+    }
+
+    if (idx === -1 || list.length === 0) return
+
     let nextIdx: number
     if (shuffle) {
       nextIdx = Math.floor(Math.random() * list.length)
@@ -100,20 +112,49 @@ export function AudioPlayer(): React.JSX.Element {
         nextIdx = (nextIdx + 1) % list.length
       }
     } else {
-      nextIdx = (idx + 1) % list.length
+      nextIdx = idx + 1
+      if (nextIdx >= list.length) {
+        if (loopMode === 'all') {
+          nextIdx = 0
+        } else if (forcePlay) {
+          // Reached end during auto-play
+          setPlaying(false)
+          return
+        } else {
+          // Manual click next at end of list, wrap around anyway
+          nextIdx = 0
+        }
+      }
     }
-    
+
     const next = list[nextIdx]
     selectAudio(next)
     void window.soundbox.setState({ lastAudioPath: next })
+    
+    // If auto-play ended, we definitely want to play the next one.
+    // If it was already playing, we also want to keep playing.
+    if (forcePlay || isPlaying) {
+      setPlaying(true)
+    }
   }
 
   const onPrev = (): void => {
-    const list = activeCollection?.items ?? []
-    if (!selectedAudio || list.length === 0) return
-    const idx = list.indexOf(selectedAudio)
-    if (idx === -1) return
-    
+    let list = activeCollection?.items ?? []
+    let idx = selectedAudio ? list.indexOf(selectedAudio) : -1
+
+    if (idx === -1 && selectedAudio) {
+      for (const c of collections) {
+        const i = c.items.indexOf(selectedAudio)
+        if (i !== -1) {
+          list = c.items
+          idx = i
+          break
+        }
+      }
+    }
+
+    if (idx === -1 || list.length === 0) return
+
     let prevIdx: number
     if (shuffle) {
       prevIdx = Math.floor(Math.random() * list.length)
@@ -123,10 +164,14 @@ export function AudioPlayer(): React.JSX.Element {
     } else {
       prevIdx = (idx - 1 + list.length) % list.length
     }
-    
+
     const prev = list[prevIdx]
     selectAudio(prev)
     void window.soundbox.setState({ lastAudioPath: prev })
+    
+    if (isPlaying) {
+      setPlaying(true)
+    }
   }
 
   return (
@@ -151,11 +196,10 @@ export function AudioPlayer(): React.JSX.Element {
             if (a) {
               a.currentTime = 0
               a.play().catch(console.error)
+              setPlaying(true)
             }
-          } else if (loopMode === 'all' || !shuffle) {
-            onNext()
           } else {
-            onNext()
+            onNext(true)
           }
         }}
         onError={(e) => {
