@@ -45,6 +45,7 @@ export function AudioList(): React.JSX.Element {
   const setTrackDuration = useLibrary((s) => s.setTrackDuration)
 
   const [sorting, setSorting] = useState<SortingState>([])
+  const [columnSizing, setColumnSizing] = useState({})
 
   const activeCollection = collections.find((c) => c.id === selectedCollectionId)
   const rows = activeCollection ? activeCollection.items : []
@@ -60,24 +61,24 @@ export function AudioList(): React.JSX.Element {
 
     if (pathsToProbe.length === 0) return
 
-    ;(async () => {
-      for (const p of pathsToProbe) {
-        if (cancelled) return
-
-        let d = trackDurations[p]
-        if (!(p in trackDurations)) {
-          d = await window.soundbox.probeDuration(p).catch(() => null)
+      ; (async () => {
+        for (const p of pathsToProbe) {
           if (cancelled) return
-          setTrackDuration(p, d)
-        }
 
-        if (isMusic && !(p in trackMeta)) {
-          const m = await window.soundbox.probeMetadata(p).catch(() => null)
-          if (cancelled) return
-          setTrackMeta(p, m || { artist: 'Unknown', album: 'Unknown', title: basename(p) })
+          let d = trackDurations[p]
+          if (!(p in trackDurations)) {
+            d = await window.soundbox.probeDuration(p).catch(() => null)
+            if (cancelled) return
+            setTrackDuration(p, d)
+          }
+
+          if (isMusic && !(p in trackMeta)) {
+            const m = await window.soundbox.probeMetadata(p).catch(() => null)
+            if (cancelled) return
+            setTrackMeta(p, m || { artist: 'Unknown', album: 'Unknown', title: basename(p) })
+          }
         }
-      }
-    })()
+      })()
 
     return () => {
       cancelled = true
@@ -113,13 +114,15 @@ export function AudioList(): React.JSX.Element {
             <span className="text-muted-foreground tabular-nums">{info.getValue() as number}</span>
           )
         },
-        size: 40
+        size: 40,
+        minSize: 40,
+        enableResizing: false
       },
       {
         accessorKey: 'title',
         header: ({ column }) => (
           <button
-            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            className="flex items-center gap-1 hover:text-foreground transition-colors w-full"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Name
@@ -131,7 +134,9 @@ export function AudioList(): React.JSX.Element {
               <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
             )}
           </button>
-        )
+        ),
+        size: 250,
+        minSize: 100
       }
     ]
 
@@ -141,7 +146,7 @@ export function AudioList(): React.JSX.Element {
           accessorKey: 'artist',
           header: ({ column }) => (
             <button
-              className="flex items-center gap-1 hover:text-foreground transition-colors"
+              className="flex items-center gap-1 hover:text-foreground transition-colors w-full"
               onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             >
               Artist
@@ -153,13 +158,15 @@ export function AudioList(): React.JSX.Element {
                 <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
               )}
             </button>
-          )
+          ),
+          size: 150,
+          minSize: 80
         },
         {
           accessorKey: 'album',
           header: ({ column }) => (
             <button
-              className="flex items-center gap-1 hover:text-foreground transition-colors"
+              className="flex items-center gap-1 hover:text-foreground transition-colors w-full"
               onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             >
               Album
@@ -171,7 +178,9 @@ export function AudioList(): React.JSX.Element {
                 <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
               )}
             </button>
-          )
+          ),
+          size: 150,
+          minSize: 80
         }
       )
     }
@@ -179,7 +188,7 @@ export function AudioList(): React.JSX.Element {
     cols.push({
       accessorKey: 'duration',
       header: ({ column }) => (
-        <div className="text-right">
+        <div className="text-right w-full pr-2">
           <button
             className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
@@ -196,10 +205,12 @@ export function AudioList(): React.JSX.Element {
         </div>
       ),
       cell: (info) => (
-        <div className="text-right tabular-nums text-muted-foreground">
+        <div className="text-right tabular-nums text-muted-foreground pr-2">
           {msToClock(info.getValue() as number | null)}
         </div>
-      )
+      ),
+      size: 90,
+      minSize: 80
     })
 
     return cols
@@ -209,9 +220,12 @@ export function AudioList(): React.JSX.Element {
     data,
     columns,
     state: {
-      sorting
+      sorting,
+      columnSizing
     },
     onSortingChange: setSorting,
+    onColumnSizingChange: setColumnSizing,
+    columnResizeMode: 'onChange',
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel()
   })
@@ -288,15 +302,36 @@ export function AudioList(): React.JSX.Element {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <Table className="min-w-[400px]">
+      <Table className="min-w-full table-fixed">
         <TableHeader className="sticky top-0 bg-background z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.1)]">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} className="group whitespace-nowrap">
+                <TableHead
+                  key={header.id}
+                  className="group whitespace-nowrap relative border-r last:border-0 border-transparent hover:border-border/30 transition-colors"
+                  style={{ width: header.getSize() }}
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(header.column.columnDef.header, header.getContext())}
+                  {header.column.getCanResize() && !header.column.getIsLastColumn() && (
+                    <div
+                      onMouseDown={header.getResizeHandler()}
+                      onTouchStart={header.getResizeHandler()}
+                      className={cn(
+                        'absolute top-0 bottom-0 -right-1.5 w-3 cursor-col-resize select-none touch-none z-20 group/resizer',
+                        header.column.getIsResizing() ? '' : ''
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          'absolute top-2 bottom-2 right-[5.5px] w-px bg-border transition-colors',
+                          header.column.getIsResizing() ? 'bg-primary w-0.5' : 'group-hover/resizer:bg-primary/50'
+                        )}
+                      />
+                    </div>
+                  )}
                 </TableHead>
               ))}
             </TableRow>
@@ -319,8 +354,10 @@ export function AudioList(): React.JSX.Element {
                 className={cn('cursor-pointer group', active && 'bg-accent/60')}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
+                    <div className="truncate">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </div>
                   </TableCell>
                 ))}
               </TableRow>
