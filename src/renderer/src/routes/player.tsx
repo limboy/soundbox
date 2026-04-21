@@ -1,16 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { PanelImperativeHandle } from 'react-resizable-panels'
+import { useCallback, useEffect, useState } from 'react'
 import {
   PanelLeft,
   PanelRight
 } from 'lucide-react'
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup
-} from '@/components/ui/resizable'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { ThreePane } from '@/components/layout/three-pane'
 import { FileTree } from '@/components/file-tree/file-tree'
 import { AudioList } from '@/components/player/audio-list'
 import { AudioPlayer } from '@/components/player/audio-player'
@@ -24,13 +19,14 @@ export function PlayerRoute(): React.JSX.Element {
   const selectCollection = useLibrary((s) => s.selectCollection)
   const selectAudio = useLibrary((s) => s.selectAudio)
 
-  const leftPanelRef = useRef<PanelImperativeHandle>(null)
-  const rightPanelRef = useRef<PanelImperativeHandle>(null)
-
   const leftSidebarOpen = useUI((s) => s.leftSidebarOpen)
   const rightSidebarOpen = useUI((s) => s.rightSidebarOpen)
+  const leftSidebarWidth = useUI((s) => s.leftSidebarWidth)
+  const rightSidebarWidth = useUI((s) => s.rightSidebarWidth)
   const setLeftSidebarOpen = useUI((s) => s.setLeftSidebarOpen)
   const setRightSidebarOpen = useUI((s) => s.setRightSidebarOpen)
+  const setLeftSidebarWidth = useUI((s) => s.setLeftSidebarWidth)
+  const setRightSidebarWidth = useUI((s) => s.setRightSidebarWidth)
 
   const [isCompact, setIsCompact] = useState(window.innerWidth < 500)
 
@@ -40,19 +36,15 @@ export function PlayerRoute(): React.JSX.Element {
       setIsCompact(compact)
 
       if (compact) {
-        if (leftPanelRef.current && !leftPanelRef.current.isCollapsed()) {
-          leftPanelRef.current.collapse()
-        }
-        if (rightPanelRef.current && !rightPanelRef.current.isCollapsed()) {
-          rightPanelRef.current.collapse()
-        }
+        setLeftSidebarOpen(false)
+        setRightSidebarOpen(false)
       }
     }
 
     window.addEventListener('resize', handleResize)
     handleResize()
     return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  }, [setLeftSidebarOpen, setRightSidebarOpen])
 
   useEffect(() => {
     void (async () => {
@@ -70,86 +62,63 @@ export function PlayerRoute(): React.JSX.Element {
   }, [setCollections, selectCollection, selectAudio])
 
   const toggleLeft = useCallback(() => {
-    const panel = leftPanelRef.current
-    if (!panel) return
-    if (panel.isCollapsed()) {
-      panel.expand()
-    } else {
-      panel.collapse()
-    }
-  }, [])
+    setLeftSidebarOpen(!leftSidebarOpen)
+  }, [leftSidebarOpen, setLeftSidebarOpen])
 
   const toggleRight = useCallback(() => {
-    const panel = rightPanelRef.current
-    if (!panel) return
-    if (panel.isCollapsed()) {
-      panel.expand()
-    } else {
-      panel.collapse()
-    }
-  }, [])
+    setRightSidebarOpen(!rightSidebarOpen)
+  }, [rightSidebarOpen, setRightSidebarOpen])
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       {/* Global Top Navigation Bar */}
-      <div
-        className="flex h-10 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-3"
-        style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+      <header
+        className="app-drag flex h-11 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-3"
       >
         {/* Left: macOS traffic light spacer + left sidebar toggler */}
-        <div className="flex items-center gap-1" style={{ paddingLeft: 64 }}>
+        <div className="flex items-center gap-1 shrink-0" style={{ paddingLeft: 64 }}>
           {!isCompact && (
             <Button
               size="icon"
               variant="ghost"
-              className="h-7 w-7 text-muted-foreground hover:text-foreground transition-colors"
+              className="app-no-drag size-7"
+              aria-label={leftSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+              aria-pressed={leftSidebarOpen}
               onClick={toggleLeft}
-              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
             >
-              <PanelLeft className={`h-4 w-4 transition-opacity ${leftSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
+              <PanelLeft className={`size-4 transition-opacity ${leftSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
             </Button>
           )}
         </div>
 
         {/* Right: theme switcher + right sidebar toggler */}
-        <div className="flex items-center gap-2">
+        <div className="app-no-drag flex items-center gap-2 shrink-0">
           <ThemeSwitcher />
           {!isCompact && (
             <Button
               size="icon"
               variant="ghost"
-              className="h-7 w-7 text-muted-foreground hover:text-foreground transition-colors"
+              className="size-7"
+              aria-label={rightSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+              aria-pressed={rightSidebarOpen}
               onClick={toggleRight}
-              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
             >
-              <PanelRight className={`h-4 w-4 transition-opacity ${rightSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
+              <PanelRight className={`size-4 transition-opacity ${rightSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
             </Button>
           )}
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <ResizablePanelGroup
-        orientation="horizontal"
-        className="flex-1 min-h-0 overflow-hidden"
-      >
-        <ResizablePanel
-          panelRef={leftPanelRef}
-          defaultSize="18%"
-          minSize="12%"
-          maxSize="30%"
-          collapsible
-          collapsedSize="0%"
-          // @ts-ignore
-          onCollapse={() => setLeftSidebarOpen(false)}
-          // @ts-ignore
-          onExpand={() => setLeftSidebarOpen(true)}
-          className="h-full"
-        >
-          <FileTree />
-        </ResizablePanel>
-        {!isCompact && <ResizableHandle className="bg-transparent" />}
-        <ResizablePanel defaultSize="52%" minSize="30%" className="h-full">
+      <ThreePane
+        leftOpen={!isCompact && leftSidebarOpen}
+        rightOpen={!isCompact && rightSidebarOpen}
+        leftWidth={leftSidebarWidth}
+        rightWidth={rightSidebarWidth}
+        onLeftWidthChange={setLeftSidebarWidth}
+        onRightWidthChange={setRightSidebarWidth}
+        left={<FileTree />}
+        center={
           <div className="h-full w-full" style={{ containerType: 'inline-size' }}>
             <ScrollArea className="h-full">
               <div className="sticky top-0 left-0 z-30 w-[100cqw] bg-background/95 backdrop-blur-md">
@@ -158,23 +127,9 @@ export function PlayerRoute(): React.JSX.Element {
               <AudioList />
             </ScrollArea>
           </div>
-        </ResizablePanel>
-        {!isCompact && <ResizableHandle className="bg-transparent" />}
-        <ResizablePanel
-          panelRef={rightPanelRef}
-          defaultSize="30%"
-          minSize="15%"
-          collapsible
-          collapsedSize="0%"
-          // @ts-ignore
-          onCollapse={() => setRightSidebarOpen(false)}
-          // @ts-ignore
-          onExpand={() => setRightSidebarOpen(true)}
-          className="h-full"
-        >
-          <SidecarPanel />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+        }
+        right={<SidecarPanel />}
+      />
     </div>
   )
 }
