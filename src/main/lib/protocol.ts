@@ -1,7 +1,8 @@
 import { protocol } from 'electron'
 import { createReadStream, promises as fs } from 'node:fs'
-import { extname } from 'node:path'
-import { isInsideRoot } from './paths'
+import { extname, basename, join, dirname } from 'node:path'
+import { AUDIO_EXTS, TEXT_EXTS } from './scan'
+import { isAuthorizedPath } from './store'
 
 export const LOCAL_SCHEME = 'local'
 
@@ -20,14 +21,24 @@ export function registerLocalSchemePrivileged(): void {
   ])
 }
 
-export function registerLocalProtocolHandler(getRoot: () => string | null): void {
-  protocol.handle(LOCAL_SCHEME, async (request) => {
-    const root = getRoot()
-    if (!root) {
-      console.warn('[Protocol] No root folder selected')
-      return new Response('No root folder selected', { status: 403 })
-    }
+function isAuthorized(absPath: string): boolean {
+  if (isAuthorizedPath(absPath)) return true
 
+  // Check if it's a companion of an authorized audio file
+  const ext = extname(absPath).toLowerCase()
+  if (TEXT_EXTS.has(ext)) {
+    const dir = dirname(absPath)
+    const base = basename(absPath, ext)
+    for (const audioExt of AUDIO_EXTS) {
+      if (isAuthorizedPath(join(dir, base + audioExt))) return true
+    }
+  }
+
+  return false
+}
+
+export function registerLocalProtocolHandler(): void {
+  protocol.handle(LOCAL_SCHEME, async (request) => {
     let absPath: string
     try {
       const prefix = `${LOCAL_SCHEME}://`
@@ -44,9 +55,8 @@ export function registerLocalProtocolHandler(getRoot: () => string | null): void
       return new Response('Bad URL', { status: 400 })
     }
 
-    if (!isInsideRoot(root, absPath)) {
+    if (!isAuthorized(absPath)) {
       console.warn('[Protocol] Forbidden access:', {
-        root,
         absPath,
         url: request.url
       })
@@ -65,7 +75,12 @@ export function registerLocalProtocolHandler(getRoot: () => string | null): void
         '.m4b': 'audio/mp4',
         '.flac': 'audio/flac',
         '.ogg': 'audio/ogg',
-        '.wav': 'audio/wav'
+        '.wav': 'audio/wav',
+        '.lrc': 'text/plain',
+        '.txt': 'text/plain',
+        '.md': 'text/markdown',
+        '.srt': 'text/plain',
+        '.vtt': 'text/vtt'
       }
       const contentType = mimeMap[extname(absPath).toLowerCase()] || 'application/octet-stream'
 

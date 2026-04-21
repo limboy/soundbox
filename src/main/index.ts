@@ -7,35 +7,17 @@ import {
   registerLocalSchemePrivileged
 } from './lib/protocol'
 import { readState } from './lib/store'
-import { startWatching, stopWatching } from './lib/watcher'
-import { clearDurationCache, registerFsIpc } from './ipc/fs'
+import { registerFsIpc } from './ipc/fs'
 import { registerDialogIpc } from './ipc/dialog'
 import { registerStoreIpc } from './ipc/store'
 import { flushCache } from './lib/metadata-cache'
 
-
 registerLocalSchemePrivileged()
 
-let currentRoot: string | null = null
 let mainWindow: BrowserWindow | null = null
-
-function getRoot(): string | null {
-  return currentRoot
-}
 
 function getWindow(): BrowserWindow | null {
   return mainWindow && !mainWindow.isDestroyed() ? mainWindow : null
-}
-
-function applyRoot(root: string | null): void {
-  currentRoot = root
-  clearDurationCache()
-  const win = getWindow()
-  if (root && win) {
-    startWatching(root, win)
-  } else {
-    stopWatching()
-  }
 }
 
 function createWindow(): void {
@@ -77,19 +59,16 @@ app.whenReady().then(async () => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  registerLocalProtocolHandler(getRoot)
+  registerLocalProtocolHandler()
   registerDialogIpc(getWindow)
   registerFsIpc()
-  registerStoreIpc((next) => applyRoot(next.rootFolder))
+  registerStoreIpc(() => {
+    // No longer need to react to rootFolder changes
+  })
 
-  const initial = await readState()
-  currentRoot = initial.rootFolder
+  await readState()
 
   createWindow()
-
-  if (currentRoot && mainWindow) {
-    startWatching(currentRoot, mainWindow)
-  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
@@ -97,7 +76,6 @@ app.whenReady().then(async () => {
 })
 
 app.on('window-all-closed', () => {
-  stopWatching()
   flushCache()
   if (process.platform !== 'darwin') {
     app.quit()
@@ -107,4 +85,3 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   flushCache()
 })
-
