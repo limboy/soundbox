@@ -27,12 +27,20 @@ export function PlayerRoute(): React.JSX.Element {
   }, [setRoot, selectAudio])
 
   return (
-    <ResizablePanelGroup orientation="horizontal" className="h-screen">
-      <ResizablePanel defaultSize="18%" minSize="12%" maxSize="30%">
+    <ResizablePanelGroup
+      orientation="horizontal"
+      className="h-screen min-h-screen overflow-hidden"
+    >
+      <ResizablePanel
+        defaultSize="18%"
+        minSize="12%"
+        maxSize="30%"
+        className="h-full"
+      >
         <FileTree />
       </ResizablePanel>
-      <ResizableHandle />
-      <ResizablePanel defaultSize="52%" minSize="30%">
+      <ResizableHandle className="bg-transparent" />
+      <ResizablePanel defaultSize="52%" minSize="30%" className="h-full">
         <div className="flex h-full flex-col">
           <AudioPlayer />
           <div className="flex min-h-0 flex-1 flex-col">
@@ -40,8 +48,12 @@ export function PlayerRoute(): React.JSX.Element {
           </div>
         </div>
       </ResizablePanel>
-      <ResizableHandle />
-      <ResizablePanel defaultSize="30%" minSize="15%">
+      <ResizableHandle className="bg-transparent" />
+      <ResizablePanel
+        defaultSize="30%"
+        minSize="15%"
+        className="h-full"
+      >
         <SidecarPanel />
       </ResizablePanel>
     </ResizablePanelGroup>

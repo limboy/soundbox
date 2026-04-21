@@ -56,17 +56,13 @@ export function SidecarPanel(): React.JSX.Element {
     return off
   }, [companions])
 
+  let inner: React.JSX.Element
   if (!selectedAudio) {
-    return (
-      <EmptyState label="Select an audio file to view its text." />
-    )
-  }
-  if (companions.length === 0) {
-    return <EmptyState label="No companion text files alongside this audio." />
-  }
-
-  return (
-    <div className="flex h-full min-h-0 flex-col">
+    inner = <EmptyState label="Select an audio file to view its text." />
+  } else if (companions.length === 0) {
+    inner = <EmptyState label="No companion text files alongside this audio." />
+  } else {
+    inner = (
       <Tabs
         value={active ?? companions[0].path}
         onValueChange={setActive}
@@ -93,6 +89,12 @@ export function SidecarPanel(): React.JSX.Element {
           </TabsContent>
         ))}
       </Tabs>
+    )
+  }
+
+  return (
+    <div className="flex h-full min-h-0 flex-col border-l">
+      {inner}
     </div>
   )
 }
