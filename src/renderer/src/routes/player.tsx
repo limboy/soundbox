@@ -10,11 +10,6 @@ import {
   ResizablePanelGroup
 } from '@/components/ui/resizable'
 import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from '@/components/ui/tooltip'
 import { FileTree } from '@/components/file-tree/file-tree'
 import { AudioList } from '@/components/player/audio-list'
 import { AudioPlayer } from '@/components/player/audio-player'
@@ -74,49 +69,33 @@ export function PlayerRoute(): React.JSX.Element {
     <div className="flex h-screen flex-col overflow-hidden">
       {/* Global Top Navigation Bar */}
       <div
-        className="flex h-11 flex-shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-3"
+        className="flex h-10 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-3"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       >
         {/* Left: macOS traffic light spacer + left sidebar toggler */}
-        <div className="flex items-center gap-1" style={{ paddingLeft: 68 }}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 text-muted-foreground hover:text-foreground transition-colors"
-                onClick={toggleLeft}
-                style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-                title="Toggle Songs Sidebar"
-              >
-                <PanelLeft className={`h-4 w-4 transition-opacity ${leftSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              {leftSidebarOpen ? 'Hide' : 'Show'} Songs
-            </TooltipContent>
-          </Tooltip>
+        <div className="flex items-center gap-1" style={{ paddingLeft: 64 }}>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={toggleLeft}
+            style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          >
+            <PanelLeft className={`h-4 w-4 transition-opacity ${leftSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
+          </Button>
         </div>
 
         {/* Right: right sidebar toggler */}
         <div className="flex items-center gap-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 text-muted-foreground hover:text-foreground transition-colors"
-                onClick={toggleRight}
-                style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-                title="Toggle Companion Text Sidebar"
-              >
-                <PanelRight className={`h-4 w-4 transition-opacity ${rightSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              {rightSidebarOpen ? 'Hide' : 'Show'} Companion Text
-            </TooltipContent>
-          </Tooltip>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={toggleRight}
+            style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          >
+            <PanelRight className={`h-4 w-4 transition-opacity ${rightSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
+          </Button>
         </div>
       </div>
 
