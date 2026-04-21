@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PanelImperativeHandle } from 'react-resizable-panels'
 import {
   PanelLeft,
@@ -31,6 +31,28 @@ export function PlayerRoute(): React.JSX.Element {
   const rightSidebarOpen = useUI((s) => s.rightSidebarOpen)
   const setLeftSidebarOpen = useUI((s) => s.setLeftSidebarOpen)
   const setRightSidebarOpen = useUI((s) => s.setRightSidebarOpen)
+
+  const [isCompact, setIsCompact] = useState(window.innerWidth < 500)
+
+  useEffect(() => {
+    const handleResize = () => {
+      const compact = window.innerWidth < 500
+      setIsCompact(compact)
+
+      if (compact) {
+        if (leftPanelRef.current && !leftPanelRef.current.isCollapsed()) {
+          leftPanelRef.current.collapse()
+        }
+        if (rightPanelRef.current && !rightPanelRef.current.isCollapsed()) {
+          rightPanelRef.current.collapse()
+        }
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    handleResize()
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     void (async () => {
@@ -76,29 +98,33 @@ export function PlayerRoute(): React.JSX.Element {
       >
         {/* Left: macOS traffic light spacer + left sidebar toggler */}
         <div className="flex items-center gap-1" style={{ paddingLeft: 64 }}>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7 text-muted-foreground hover:text-foreground transition-colors"
-            onClick={toggleLeft}
-            style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-          >
-            <PanelLeft className={`h-4 w-4 transition-opacity ${leftSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
-          </Button>
+          {!isCompact && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={toggleLeft}
+              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+            >
+              <PanelLeft className={`h-4 w-4 transition-opacity ${leftSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
+            </Button>
+          )}
         </div>
 
         {/* Right: theme switcher + right sidebar toggler */}
         <div className="flex items-center gap-2">
           <ThemeSwitcher />
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7 text-muted-foreground hover:text-foreground transition-colors"
-            onClick={toggleRight}
-            style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-          >
-            <PanelRight className={`h-4 w-4 transition-opacity ${rightSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
-          </Button>
+          {!isCompact && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={toggleRight}
+              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+            >
+              <PanelRight className={`h-4 w-4 transition-opacity ${rightSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -122,16 +148,18 @@ export function PlayerRoute(): React.JSX.Element {
         >
           <FileTree />
         </ResizablePanel>
-        <ResizableHandle className="bg-transparent" />
+        {!isCompact && <ResizableHandle className="bg-transparent" />}
         <ResizablePanel defaultSize="52%" minSize="30%" className="h-full">
-          <ScrollArea className="h-full">
-            <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md">
-              <AudioPlayer />
-            </div>
-            <AudioList />
-          </ScrollArea>
+          <div className="h-full w-full" style={{ containerType: 'inline-size' }}>
+            <ScrollArea className="h-full">
+              <div className="sticky top-0 left-0 z-30 w-[100cqw] bg-background/95 backdrop-blur-md">
+                <AudioPlayer />
+              </div>
+              <AudioList />
+            </ScrollArea>
+          </div>
         </ResizablePanel>
-        <ResizableHandle className="bg-transparent" />
+        {!isCompact && <ResizableHandle className="bg-transparent" />}
         <ResizablePanel
           panelRef={rightPanelRef}
           defaultSize="30%"
