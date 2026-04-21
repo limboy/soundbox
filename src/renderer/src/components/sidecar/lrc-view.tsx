@@ -9,12 +9,11 @@ export function LrcView({ content }: { content: string }): React.JSX.Element {
   const [lines, setLines] = useState<TimedLine[]>([])
 
   useEffect(() => {
-    let applied = false
+    let active = true
     const parser = new Lyric({
       onPlay: () => {},
       onSetLyric: (parsed) => {
-        if (applied) return
-        applied = true
+        if (!active) return
         setLines(
           parsed
             .map((l: { time: number; text: string }) => ({ time: l.time, text: l.text }))
@@ -24,6 +23,7 @@ export function LrcView({ content }: { content: string }): React.JSX.Element {
     })
     parser.setLyric(content)
     return () => {
+      active = false
       parser.pause()
     }
   }, [content])
