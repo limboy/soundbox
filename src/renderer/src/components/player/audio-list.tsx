@@ -1,5 +1,5 @@
-import { FileAudio, Play } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { FileAudio, Play, ChevronsUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { useEffect, useState, useMemo } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Table,
@@ -9,12 +9,27 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  SortingState,
+  ColumnDef
+} from '@tanstack/react-table'
 import { basename } from '@/lib/audio-extensions'
 import { msToClock } from '@/lib/format-time'
 import { cn } from '@/lib/utils'
 import { useLibrary } from '@/store/library-store'
 
-type Meta = { artist: string; album: string; title: string }
+type AudioItem = {
+  path: string
+  title: string
+  artist: string
+  album: string
+  duration: number | null
+  index: number
+}
 
 export function AudioList(): React.JSX.Element {
   const collections = useLibrary((s) => s.collections)
@@ -29,7 +44,9 @@ export function AudioList(): React.JSX.Element {
   const setTrackMeta = useLibrary((s) => s.setTrackMeta)
   const setTrackDuration = useLibrary((s) => s.setTrackDuration)
 
-  const activeCollection = collections.find(c => c.id === selectedCollectionId)
+  const [sorting, setSorting] = useState<SortingState>([])
+
+  const activeCollection = collections.find((c) => c.id === selectedCollectionId)
   const rows = activeCollection ? activeCollection.items : []
   const isMusic = activeCollection?.type === 'Music'
 
@@ -46,7 +63,7 @@ export function AudioList(): React.JSX.Element {
     ;(async () => {
       for (const p of pathsToProbe) {
         if (cancelled) return
-        
+
         let d = trackDurations[p]
         if (!(p in trackDurations)) {
           d = await window.soundbox.probeDuration(p).catch(() => null)
@@ -65,8 +82,139 @@ export function AudioList(): React.JSX.Element {
     return () => {
       cancelled = true
     }
-  }, [rows, isMusic]) // Removed durations from dependencies to avoid self-canceling loop
+  }, [rows, isMusic])
 
+  const data = useMemo<AudioItem[]>(() => {
+    return rows.map((path, index) => {
+      const m = trackMeta[path]
+      const duration = trackDurations[path] ?? null
+      return {
+        path,
+        index: index + 1,
+        title: m?.title && m.title !== 'Unknown' ? m.title : basename(path),
+        artist: m?.artist || 'Unknown',
+        album: m?.album || 'Unknown',
+        duration
+      }
+    })
+  }, [rows, trackMeta, trackDurations])
+
+  const columns = useMemo<ColumnDef<AudioItem>[]>(() => {
+    const cols: ColumnDef<AudioItem>[] = [
+      {
+        accessorKey: 'index',
+        header: '#',
+        cell: (info) => {
+          const path = info.row.original.path
+          const active = path === selectedAudio
+          return active ? (
+            <Play className="h-3.5 w-3.5 text-primary" />
+          ) : (
+            <span className="text-muted-foreground tabular-nums">{info.getValue() as number}</span>
+          )
+        },
+        size: 40
+      },
+      {
+        accessorKey: 'title',
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Name
+            {column.getIsSorted() === 'asc' ? (
+              <ArrowUp className="h-3.5 w-3.5" />
+            ) : column.getIsSorted() === 'desc' ? (
+              <ArrowDown className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
+            )}
+          </button>
+        )
+      }
+    ]
+
+    if (isMusic) {
+      cols.push(
+        {
+          accessorKey: 'artist',
+          header: ({ column }) => (
+            <button
+              className="flex items-center gap-1 hover:text-foreground transition-colors"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Artist
+              {column.getIsSorted() === 'asc' ? (
+                <ArrowUp className="h-3.5 w-3.5" />
+              ) : column.getIsSorted() === 'desc' ? (
+                <ArrowDown className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
+              )}
+            </button>
+          )
+        },
+        {
+          accessorKey: 'album',
+          header: ({ column }) => (
+            <button
+              className="flex items-center gap-1 hover:text-foreground transition-colors"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Album
+              {column.getIsSorted() === 'asc' ? (
+                <ArrowUp className="h-3.5 w-3.5" />
+              ) : column.getIsSorted() === 'desc' ? (
+                <ArrowDown className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
+              )}
+            </button>
+          )
+        }
+      )
+    }
+
+    cols.push({
+      accessorKey: 'duration',
+      header: ({ column }) => (
+        <div className="text-right">
+          <button
+            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Duration
+            {column.getIsSorted() === 'asc' ? (
+              <ArrowUp className="h-3.5 w-3.5" />
+            ) : column.getIsSorted() === 'desc' ? (
+              <ArrowDown className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
+            )}
+          </button>
+        </div>
+      ),
+      cell: (info) => (
+        <div className="text-right tabular-nums text-muted-foreground">
+          {msToClock(info.getValue() as number | null)}
+        </div>
+      )
+    })
+
+    return cols
+  }, [isMusic, selectedAudio])
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      sorting
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel()
+  })
 
   const handleDragOver = (e: React.DragEvent): void => {
     e.preventDefault()
@@ -116,8 +264,11 @@ export function AudioList(): React.JSX.Element {
 
   if (rows.length === 0) {
     return (
-      <div 
-        className={cn("flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground transition-colors", isDragOver ? 'bg-primary/5 ring-2 ring-inset ring-primary/20' : '')}
+      <div
+        className={cn(
+          'flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground transition-colors',
+          isDragOver ? 'bg-primary/5 ring-2 ring-inset ring-primary/20' : ''
+        )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -131,54 +282,47 @@ export function AudioList(): React.JSX.Element {
   }
 
   return (
-    <ScrollArea 
-      className={cn("flex-1", isDragOver ? 'bg-primary/5 ring-2 ring-inset ring-primary/20' : '')}
+    <ScrollArea
+      className={cn('flex-1', isDragOver ? 'bg-primary/5 ring-2 ring-inset ring-primary/20' : '')}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <Table className="min-w-[400px]">
-        <TableHeader className="sticky top-0 bg-background">
-          <TableRow>
-            <TableHead className="w-10">#</TableHead>
-            <TableHead>Name</TableHead>
-            {isMusic && <TableHead>Artist</TableHead>}
-            {isMusic && <TableHead>Album</TableHead>}
-            <TableHead className="w-24 text-right">Duration</TableHead>
-          </TableRow>
+        <TableHeader className="sticky top-0 bg-background z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.1)]">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id} className="group whitespace-nowrap">
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
         </TableHeader>
         <TableBody>
-          {rows.map((row, i) => {
-            const active = row === selectedAudio
-            const ms = trackDurations[row]
-            const m = trackMeta[row]
-            const name = m?.title && m.title !== 'Unknown' ? m.title : basename(row)
+          {table.getRowModel().rows.map((row) => {
+            const active = row.original.path === selectedAudio
             return (
               <TableRow
-                key={row}
+                key={row.id}
                 onClick={() => {
-                  selectAudio(row)
-                  void window.soundbox.setState({ lastAudioPath: row })
+                  selectAudio(row.original.path)
+                  void window.soundbox.setState({ lastAudioPath: row.original.path })
                 }}
                 onDoubleClick={() => {
-                  selectAudio(row)
-                  void window.soundbox.setState({ lastAudioPath: row })
+                  selectAudio(row.original.path)
+                  void window.soundbox.setState({ lastAudioPath: row.original.path })
                 }}
-                className={cn('cursor-pointer', active && 'bg-accent/60')}
+                className={cn('cursor-pointer group', active && 'bg-accent/60')}
               >
-                <TableCell className="text-muted-foreground tabular-nums">
-                  {active ? (
-                    <Play className="h-3.5 w-3.5 text-primary" />
-                  ) : (
-                    <span>{i + 1}</span>
-                  )}
-                </TableCell>
-                <TableCell className="font-medium">{name}</TableCell>
-                {isMusic && <TableCell className="text-muted-foreground">{m?.artist || 'Unknown'}</TableCell>}
-                {isMusic && <TableCell className="text-muted-foreground">{m?.album || 'Unknown'}</TableCell>}
-                <TableCell className="text-right tabular-nums text-muted-foreground">
-                  {msToClock(ms ?? null)}
-                </TableCell>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
               </TableRow>
             )
           })}
