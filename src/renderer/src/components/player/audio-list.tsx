@@ -71,7 +71,7 @@ export function AudioList(): React.JSX.Element {
       setBulkTrackInfo(bulk)
 
       const missingPaths: string[] = []
-      
+
       for (const p of pathsToCheck) {
         if (cancelled) return
 
@@ -334,7 +334,7 @@ export function AudioList(): React.JSX.Element {
       onDrop={handleDrop}
     >
       <Table className="min-w-full table-fixed border-collapse">
-        <TableHeader className="sticky top-[156px] z-20 bg-background">
+        <TableHeader className="sticky top-[158px] z-20 bg-background">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
