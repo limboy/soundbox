@@ -327,14 +327,14 @@ export function AudioList(): React.JSX.Element {
   }
 
   return (
-    <ScrollArea
-      className={cn('flex-1', isDragOver ? 'bg-primary/5 ring-2 ring-inset ring-primary/20' : '')}
+    <div
+      className={cn('w-full', isDragOver ? 'bg-primary/5 ring-2 ring-inset ring-primary/20' : '')}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <Table className="min-w-full table-fixed">
-        <TableHeader className="sticky top-0 bg-background z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.1)]">
+        <TableHeader className="sticky top-[156px] bg-background z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.1)]">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -397,6 +397,6 @@ export function AudioList(): React.JSX.Element {
           })}
         </TableBody>
       </Table>
-    </ScrollArea>
+    </div>
   )
 }

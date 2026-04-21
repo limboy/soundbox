@@ -10,6 +10,7 @@ import {
   ResizablePanelGroup
 } from '@/components/ui/resizable'
 import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { FileTree } from '@/components/file-tree/file-tree'
 import { AudioList } from '@/components/player/audio-list'
 import { AudioPlayer } from '@/components/player/audio-player'
@@ -123,12 +124,12 @@ export function PlayerRoute(): React.JSX.Element {
         </ResizablePanel>
         <ResizableHandle className="bg-transparent" />
         <ResizablePanel defaultSize="52%" minSize="30%" className="h-full">
-          <div className="flex h-full flex-col">
-            <AudioPlayer />
-            <div className="flex min-h-0 flex-1 flex-col">
-              <AudioList />
+          <ScrollArea className="h-full">
+            <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md">
+              <AudioPlayer />
             </div>
-          </div>
+            <AudioList />
+          </ScrollArea>
         </ResizablePanel>
         <ResizableHandle className="bg-transparent" />
         <ResizablePanel
