@@ -8,12 +8,15 @@ import {
 } from '@tanstack/react-router'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { PlayerRoute } from '@/routes/player'
+import { ThemeProvider } from '@/components/theme-provider'
 
 const rootRoute = createRootRoute({
   component: () => (
-    <TooltipProvider delayDuration={300}>
-      <Outlet />
-    </TooltipProvider>
+    <ThemeProvider defaultTheme="light" storageKey="soundbox-ui-theme">
+      <TooltipProvider delayDuration={300}>
+        <Outlet />
+      </TooltipProvider>
+    </ThemeProvider>
   )
 })
 

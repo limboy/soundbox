@@ -14,6 +14,7 @@ import { FileTree } from '@/components/file-tree/file-tree'
 import { AudioList } from '@/components/player/audio-list'
 import { AudioPlayer } from '@/components/player/audio-player'
 import { SidecarPanel } from '@/components/sidecar/sidecar-panel'
+import { ThemeSwitcher } from '@/components/theme-switcher'
 import { useLibrary } from '@/store/library-store'
 import { useUI } from '@/store/ui-store'
 
@@ -85,8 +86,9 @@ export function PlayerRoute(): React.JSX.Element {
           </Button>
         </div>
 
-        {/* Right: right sidebar toggler */}
-        <div className="flex items-center gap-1">
+        {/* Right: theme switcher + right sidebar toggler */}
+        <div className="flex items-center gap-2">
+          <ThemeSwitcher />
           <Button
             size="icon"
             variant="ghost"

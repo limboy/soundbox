@@ -136,7 +136,7 @@ export function AudioList(): React.JSX.Element {
             <span className="text-muted-foreground tabular-nums">{info.getValue() as number}</span>
           )
         },
-        size: 40,
+        size: 50,
         minSize: 40,
         enableResizing: false
       },
