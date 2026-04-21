@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
-import { readFile } from 'node:fs/promises'
+import { readFile, stat } from 'node:fs/promises'
+import { extname } from 'node:path'
 import { parseFile } from 'music-metadata'
 import { isInsideRoot } from '../lib/paths'
 import { findCompanions, readTree } from '../lib/scan'
@@ -37,6 +38,18 @@ export function registerFsIpc(getRoot: () => string | null): void {
       return ms
     } catch {
       durationCache.set(path, null)
+      return null
+    }
+  })
+  ipcMain.handle('soundbox:getPathInfo', async (_e, path: string) => {
+    try {
+      const s = await stat(path)
+      return {
+        isDirectory: s.isDirectory(),
+        isFile: s.isFile(),
+        ext: extname(path).toLowerCase()
+      }
+    } catch {
       return null
     }
   })

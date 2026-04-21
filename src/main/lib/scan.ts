@@ -2,19 +2,7 @@ import type { Dirent } from 'node:fs'
 import { readdir } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
 
-export const AUDIO_EXTS = new Set([
-  '.mp3',
-  '.m4a',
-  '.m4b',
-  '.aac',
-  '.flac',
-  '.ogg',
-  '.oga',
-  '.opus',
-  '.wav',
-  '.wave',
-  '.webm'
-])
+export const AUDIO_EXTS = new Set(['.mp3', '.m4a', '.m4b', '.flac'])
 
 export const TEXT_EXTS = new Set([
   '.lrc',

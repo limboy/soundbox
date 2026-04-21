@@ -20,4 +20,6 @@ export interface SoundboxApi {
   getState(): Promise<AppState>
   setState(patch: Partial<AppState>): Promise<AppState>
   onLibraryChanged(cb: (payload: LibraryChangedPayload) => void): () => void
+  getPathInfo(path: string): Promise<{ isDirectory: boolean; isFile: boolean; ext: string } | null>
+  getPathForFile(file: File): string
 }

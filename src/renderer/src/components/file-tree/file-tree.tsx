@@ -1,5 +1,5 @@
 import { FolderOpen, RefreshCw } from 'lucide-react'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useLibrary } from '@/store/library-store'
@@ -20,6 +20,7 @@ export function FileTree(): React.JSX.Element {
     setLoading,
     setError
   } = useLibrary()
+  const [isDragOver, setIsDragOver] = useState(false)
 
   const refresh = useCallback(
     async (root: string) => {
@@ -56,8 +57,52 @@ export function FileTree(): React.JSX.Element {
     await window.soundbox.setState({ rootFolder: picked, lastAudioPath: null })
   }
 
+  const handleDragOver = (e: React.DragEvent): void => {
+    e.preventDefault()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (): void => {
+    setIsDragOver(false)
+  }
+
+  const handleDrop = async (e: React.DragEvent): Promise<void> => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length === 0) return
+
+    const file = files[0]
+    const path = window.soundbox.getPathForFile(file)
+    if (!path) return
+
+    const info = await window.soundbox.getPathInfo(path)
+    if (!info) return
+
+    if (info.isDirectory) {
+      setRoot(path)
+      await window.soundbox.setState({ rootFolder: path, lastAudioPath: null })
+    } else if (info.isFile) {
+      const allowed = ['.mp3', '.m4a', '.m4b', '.flac']
+      if (allowed.includes(info.ext)) {
+        const parent = path.replace(/[/\\][^/\\]+$/, '')
+        setRoot(parent)
+        selectAudio(path)
+        await window.soundbox.setState({ rootFolder: parent, lastAudioPath: path })
+      }
+    }
+  }
+
   return (
-    <div className="flex h-full flex-col border-r">
+    <div
+      className={`flex h-full flex-col border-r transition-colors ${
+        isDragOver ? 'bg-primary/5 ring-2 ring-inset ring-primary/20' : ''
+      }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
         <div className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {rootFolder ? rootFolder.split(/[/\\]/).pop() : 'No folder'}

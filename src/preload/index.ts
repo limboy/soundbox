@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
+import { contextBridge, ipcRenderer, IpcRendererEvent, webUtils } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
 const api = {}
@@ -24,7 +24,14 @@ const soundbox = {
     return () => {
       ipcRenderer.removeListener('soundbox:library-changed', listener)
     }
-  }
+  },
+  getPathInfo: (path: string) =>
+    ipcRenderer.invoke('soundbox:getPathInfo', path) as Promise<{
+      isDirectory: boolean
+      isFile: boolean
+      ext: string
+    } | null>,
+  getPathForFile: (file: File) => webUtils.getPathForFile(file)
 }
 
 if (process.contextIsolated) {
