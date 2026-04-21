@@ -137,7 +137,7 @@ export function AudioList(): React.JSX.Element {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <Table className="min-w-[600px]">
+      <Table className="min-w-[400px]">
         <TableHeader className="sticky top-0 bg-background">
           <TableRow>
             <TableHead className="w-10">#</TableHead>

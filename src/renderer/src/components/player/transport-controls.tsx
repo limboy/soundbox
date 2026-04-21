@@ -126,7 +126,7 @@ export function TransportControls({
       </div>
 
       {/* Part 3: Controller */}
-      <div className="flex items-center gap-8 text-muted-foreground/80">
+      <div className="flex items-center gap-4 md:gap-8 text-muted-foreground/80">
         <Button
           size="icon"
           variant="ghost"

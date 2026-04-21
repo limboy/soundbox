@@ -40,8 +40,8 @@ function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    minWidth: 900,
-    minHeight: 600,
+    minWidth: 400,
+    minHeight: 200,
     show: false,
     autoHideMenuBar: true,
     titleBarStyle: 'hiddenInset',
