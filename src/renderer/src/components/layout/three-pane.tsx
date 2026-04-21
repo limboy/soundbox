@@ -125,7 +125,7 @@ function Resizer({
       onPointerUp={stop}
       onPointerCancel={stop}
       onLostPointerCapture={stop}
-      className="relative w-1 shrink-0 cursor-col-resize bg-transparent hover:bg-border/80 active:bg-border transition-colors -mr-1 z-30"
+      className="relative w-1 shrink-0 cursor-col-resize bg-transparent hover:bg-border/80 active:bg-border transition-colors -mr-1 z-50"
     />
   )
 }
