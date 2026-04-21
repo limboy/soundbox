@@ -41,8 +41,13 @@ export function TransportControls({
   const toggle = (): void => {
     const a = audioRef.current
     if (!a || !selectedAudio) return
-    if (a.paused) void a.play()
-    else a.pause()
+    if (a.paused) {
+      a.play().catch((err) => {
+        console.error('[TransportControls] play failed:', err)
+      })
+    } else {
+      a.pause()
+    }
   }
 
   const cycleRate = (): void => {

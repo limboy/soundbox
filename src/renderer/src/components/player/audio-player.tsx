@@ -77,18 +77,40 @@ export function AudioPlayer(): React.JSX.Element {
         ref={audioRef}
         src={selectedAudio ? pathToLocalUrl(selectedAudio) : undefined}
         preload="metadata"
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
+        onPlay={() => {
+          console.log('[AudioPlayer] play')
+          setPlaying(true)
+        }}
+        onPause={() => {
+          console.log('[AudioPlayer] pause')
+          setPlaying(false)
+        }}
         onEnded={() => {
+          console.log('[AudioPlayer] ended')
           setPlaying(false)
           onNext()
         }}
+        onError={(e) => {
+          const err = e.currentTarget.error
+          console.error('[AudioPlayer] error:', {
+            code: err?.code,
+            message: err?.message,
+            src: e.currentTarget.src
+          })
+        }}
+        onLoadStart={() => console.log('[AudioPlayer] loadstart', selectedAudio)}
+        onLoadedMetadata={() => console.log('[AudioPlayer] loadedmetadata')}
+        onCanPlay={() => console.log('[AudioPlayer] canplay')}
         onTimeUpdate={(e) => setCurrentTimeMs(secondsToMs(e.currentTarget.currentTime))}
         onDurationChange={(e) => {
           const d = e.currentTarget.duration
+          console.log('[AudioPlayer] durationchange:', d)
           setDurationMs(Number.isFinite(d) ? secondsToMs(d) : 0)
         }}
-        onSeeked={(e) => setCurrentTimeMs(secondsToMs(e.currentTarget.currentTime))}
+        onSeeked={(e) => {
+          console.log('[AudioPlayer] seeked:', e.currentTarget.currentTime)
+          setCurrentTimeMs(secondsToMs(e.currentTarget.currentTime))
+        }}
       />
       <TransportControls
         audioRef={audioRef}

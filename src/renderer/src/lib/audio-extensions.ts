@@ -17,5 +17,8 @@ export function dirname(path: string): string {
 export function pathToLocalUrl(absPath: string): string {
   let normalized = absPath.replaceAll('\\', '/')
   if (!normalized.startsWith('/')) normalized = '/' + normalized
-  return `local://${encodeURI(normalized)}`
+  // encodeURIComponent is too aggressive (encodes /), 
+  // but we need to encode # and ? which encodeURI doesn't.
+  const encoded = encodeURI(normalized).replaceAll('#', '%23').replaceAll('?', '%3F')
+  return `local://${encoded}`
 }
