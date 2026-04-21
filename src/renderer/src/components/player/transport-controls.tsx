@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react'
 import {
   Pause,
   Play,
@@ -36,6 +37,21 @@ export function TransportControls({
   const setLoopMode = usePlayer((s) => s.setLoopMode)
   const requestSeek = usePlayer((s) => s.requestSeek)
 
+  const [hoverMs, setHoverMs] = useState<number | null>(null)
+  const [hoverLeft, setHoverLeft] = useState(0)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!selectedAudio || durationMs === 0) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    setHoverMs(percent * durationMs)
+    setHoverLeft(e.clientX - rect.left)
+  }
+
+  const handleMouseLeave = () => {
+    setHoverMs(null)
+  }
+
   const toggle = (): void => {
     const a = audioRef.current
     if (!a || !selectedAudio) return
@@ -57,25 +73,40 @@ export function TransportControls({
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 py-2">
+    <div className="flex flex-col items-center">
       {/* Part 1: Song Title */}
       <div className="flex w-full max-w-xl flex-col items-center gap-1 px-4">
-        <h2 className="line-clamp-1 text-center text-lg font-bold tracking-tight text-foreground transition-all">
+        <h2 className="line-clamp-1 text-center text-lg tracking-tight text-foreground transition-all">
           {selectedAudio ? basename(selectedAudio) : 'Ready to play'}
         </h2>
       </div>
 
       {/* Part 2: Progress Bar */}
-      <div className="flex w-full max-w-3xl flex-col gap-1 px-8">
-        <Slider
-          className="cursor-pointer"
-          value={[currentTimeMs]}
-          min={0}
-          max={Math.max(durationMs, 1)}
-          step={100}
-          disabled={!selectedAudio || durationMs === 0}
-          onValueChange={(v) => requestSeek(v[0])}
-        />
+      <div className="flex w-full max-w-3xl flex-col gap-1 px-8 mt-2">
+        <div
+          className="relative px-0.5"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
+          {hoverMs !== null && (
+            <div
+              className="absolute bottom-full mb-2 -translate-x-1/2 rounded bg-foreground px-1.5 py-0.5 text-[10px] font-medium text-background shadow-md pointer-events-none"
+              style={{ left: hoverLeft }}
+            >
+              {msToClock(hoverMs)}
+            </div>
+          )}
+          <Slider
+            className="cursor-pointer"
+            value={[currentTimeMs]}
+            min={0}
+            max={Math.max(durationMs, 1)}
+            step={100}
+            hideThumb={true}
+            disabled={!selectedAudio || durationMs === 0}
+            onValueChange={(v) => requestSeek(v[0])}
+          />
+        </div>
         <div className="flex justify-between px-0.5">
           <span className="text-[10px] font-medium tabular-nums text-muted-foreground/70">
             {msToClock(currentTimeMs)}
