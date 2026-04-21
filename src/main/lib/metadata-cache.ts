@@ -14,18 +14,26 @@ export interface MetadataCacheEntry {
 const CACHE_FILE_NAME = 'metadata-cache.json'
 let cache: Record<string, MetadataCacheEntry> = {}
 let cacheLoaded = false
+let loadPromise: Promise<void> | null = null
 let saveTimeout: NodeJS.Timeout | null = null
 
 async function ensureCacheLoaded(): Promise<void> {
   if (cacheLoaded) return
-  const cachePath = join(app.getPath('userData'), CACHE_FILE_NAME)
-  try {
-    const data = await readFile(cachePath, 'utf8')
-    cache = JSON.parse(data)
-  } catch {
-    cache = {}
-  }
-  cacheLoaded = true
+  if (loadPromise) return loadPromise
+  
+  loadPromise = (async () => {
+    const cachePath = join(app.getPath('userData'), CACHE_FILE_NAME)
+    try {
+      const data = await readFile(cachePath, 'utf8')
+      cache = JSON.parse(data)
+    } catch {
+      cache = {}
+    }
+    cacheLoaded = true
+    loadPromise = null
+  })()
+  
+  return loadPromise
 }
 
 function saveCacheDebounced(): void {
@@ -43,6 +51,7 @@ function saveCacheDebounced(): void {
 }
 
 export async function flushCache(): Promise<void> {
+  if (!cacheLoaded) return
   if (saveTimeout) {
     clearTimeout(saveTimeout)
     saveTimeout = null

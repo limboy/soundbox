@@ -46,6 +46,8 @@ export function AudioList(): React.JSX.Element {
   const trackDurations = useLibrary((s) => s.trackDurations)
   const setTrackMeta = useLibrary((s) => s.setTrackMeta)
   const setTrackDuration = useLibrary((s) => s.setTrackDuration)
+  const setBulkTrackInfo = useLibrary((s) => s.setBulkTrackInfo)
+
 
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnSizing, setColumnSizing] = useState({})
@@ -61,7 +63,15 @@ export function AudioList(): React.JSX.Element {
       const pathsToCheck = [...rows]
       if (pathsToCheck.length === 0) return
 
+      // First, get everything we can from the bulk cache
+      const bulk = await window.soundbox.getBulkMetadata(pathsToCheck).catch(() => ({}))
+      if (cancelled) return
+
+      // Apply bulk updates at once to minimize re-renders
+      setBulkTrackInfo(bulk)
+
       const missingPaths: string[] = []
+      
       for (const p of pathsToCheck) {
         if (cancelled) return
 
@@ -71,22 +81,17 @@ export function AudioList(): React.JSX.Element {
           continue
         }
 
-        const hasDuration = p in trackDurations
-        const hasMeta = !isMusic || p in trackMeta
+        // If not in bulk (unexpected if already probed before), probe individually
+        if (!(p in trackDurations) && !bulk[p]) {
+          const d = await window.soundbox.probeDuration(p).catch(() => null)
+          if (cancelled) return
+          setTrackDuration(p, d)
+        }
 
-        if (!hasDuration || !hasMeta) {
-          let d = trackDurations[p]
-          if (!(p in trackDurations)) {
-            d = await window.soundbox.probeDuration(p).catch(() => null)
-            if (cancelled) return
-            setTrackDuration(p, d)
-          }
-
-          if (isMusic && !(p in trackMeta)) {
-            const m = await window.soundbox.probeMetadata(p).catch(() => null)
-            if (cancelled) return
-            setTrackMeta(p, m || { artist: 'Unknown', album: 'Unknown', title: basename(p) })
-          }
+        if (isMusic && !(p in trackMeta) && !bulk[p]) {
+          const m = await window.soundbox.probeMetadata(p).catch(() => null)
+          if (cancelled) return
+          setTrackMeta(p, m || { artist: 'Unknown', album: 'Unknown', title: basename(p) })
         }
       }
 
@@ -94,6 +99,8 @@ export function AudioList(): React.JSX.Element {
         removeItemsFromSelectedCollection(missingPaths)
       }
     }
+
+
 
     void checkAll()
 

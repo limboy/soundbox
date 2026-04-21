@@ -11,7 +11,6 @@ export type Collection = {
 }
 
 export type AppState = {
-  rootFolder: string | null
   collections: Collection[]
   selectedCollectionId: string | null
   lastAudioPath: string | null
@@ -28,6 +27,7 @@ export interface SoundboxApi {
   findCompanions(audioPath: string): Promise<Companion[]>
   probeDuration(path: string): Promise<number | null>
   probeMetadata(path: string): Promise<{ artist: string; album: string; title: string } | null>
+  getBulkMetadata(paths: string[]): Promise<Record<string, { meta: { artist: string; album: string; title: string }; duration: number | null }>>
   fetchAndCacheLyrics(path: string, trackName: string, artistName: string, albumName: string, duration: number): Promise<string | null>
   getState(): Promise<AppState>
   setState(patch: Partial<AppState>): Promise<AppState>

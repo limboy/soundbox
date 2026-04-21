@@ -67,7 +67,26 @@ export function registerFsIpc(): void {
     }
   })
 
+  ipcMain.handle('soundbox:getBulkMetadata', async (_e, paths: string[]) => {
+    const result: Record<string, any> = {}
+    for (const path of paths) {
+      const cached = await getCachedMetadata(path)
+      if (cached) {
+        result[path] = {
+          meta: {
+            artist: cached.artist,
+            album: cached.album,
+            title: cached.title
+          },
+          duration: cached.duration
+        }
+      }
+    }
+    return result
+  })
+
   ipcMain.handle('soundbox:probeMetadata', async (_e, path: string) => {
+
     const cached = await getCachedMetadata(path)
     if (cached !== null) {
       return {

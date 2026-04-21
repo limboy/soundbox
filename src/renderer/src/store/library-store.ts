@@ -13,6 +13,7 @@ type LibraryState = {
   addCollection: (title: string, type: CollectionType) => void
   setTrackMeta: (path: string, meta: { artist: string; album: string; title: string } | null) => void
   setTrackDuration: (path: string, duration: number | null) => void
+  setBulkTrackInfo: (items: Record<string, { meta?: { artist: string; album: string; title: string }; duration?: number | null }>) => void
   selectCollection: (id: string | null) => void
   addItemsToSelectedCollection: (paths: string[]) => void
   removeItemsFromSelectedCollection: (paths: string[]) => void
@@ -39,6 +40,15 @@ export const useLibrary = create<LibraryState>((set, get) => ({
   },
   setTrackMeta: (path, meta) => set((s) => ({ trackMeta: { ...s.trackMeta, [path]: meta } })),
   setTrackDuration: (path, duration) => set((s) => ({ trackDurations: { ...s.trackDurations, [path]: duration } })),
+  setBulkTrackInfo: (items) => set((s) => {
+    const nextMeta = { ...s.trackMeta }
+    const nextDurations = { ...s.trackDurations }
+    for (const [path, info] of Object.entries(items)) {
+      if (info.meta) nextMeta[path] = info.meta
+      if ('duration' in info) nextDurations[path] = info.duration ?? null
+    }
+    return { trackMeta: nextMeta, trackDurations: nextDurations }
+  }),
   selectCollection: (id) => {
     set({ selectedCollectionId: id })
     void window.soundbox.setState({ selectedCollectionId: id })

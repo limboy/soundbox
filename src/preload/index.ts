@@ -16,7 +16,10 @@ const soundbox = {
     ipcRenderer.invoke('soundbox:probeDuration', path) as Promise<number | null>,
   probeMetadata: (path: string) =>
     ipcRenderer.invoke('soundbox:probeMetadata', path) as Promise<{ artist: string; album: string; title: string } | null>,
+  getBulkMetadata: (paths: string[]) =>
+    ipcRenderer.invoke('soundbox:getBulkMetadata', paths) as Promise<Record<string, { meta: { artist: string; album: string; title: string }; duration: number | null }>>,
   fetchAndCacheLyrics: (path: string, trackName: string, artistName: string, albumName: string, duration: number) =>
+
     ipcRenderer.invoke('soundbox:fetchAndCacheLyrics', path, trackName, artistName, albumName, duration) as Promise<string | null>,
   getState: () => ipcRenderer.invoke('soundbox:getState'),
   setState: (patch: any) =>
