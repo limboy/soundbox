@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import {
   Pause,
   Play,
@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider'
 import { basename } from '@/lib/audio-extensions'
 import { msToClock } from '@/lib/format-time'
 import { usePlayer } from '@/store/player-store'
+import { useLibrary } from '@/store/library-store'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -36,6 +37,8 @@ export function TransportControls({
   const setShuffle = usePlayer((s) => s.setShuffle)
   const setLoopMode = usePlayer((s) => s.setLoopMode)
   const requestSeek = usePlayer((s) => s.requestSeek)
+  const trackMeta = useLibrary((s) => s.trackMeta)
+  const m = selectedAudio ? trackMeta[selectedAudio] : null
 
   const [hoverMs, setHoverMs] = useState<number | null>(null)
   const [hoverLeft, setHoverLeft] = useState(0)
@@ -76,9 +79,14 @@ export function TransportControls({
     <div className="flex flex-col items-center">
       {/* Part 1: Song Title */}
       <div className="flex w-full max-w-xl flex-col items-center gap-1 px-4">
-        <h2 className="line-clamp-1 text-center text-lg tracking-tight text-foreground transition-all">
-          {selectedAudio ? basename(selectedAudio) : 'Ready to play'}
+        <h2 className="line-clamp-1 text-center text-lg font-semibold tracking-tight text-foreground transition-all">
+          {selectedAudio ? (m?.title && m.title !== 'Unknown' ? m.title : basename(selectedAudio)) : 'Ready to play'}
         </h2>
+        {m?.artist && m.artist !== 'Unknown' && (
+          <p className="line-clamp-1 text-center text-sm text-muted-foreground/80">
+            {m.artist}
+          </p>
+        )}
       </div>
 
       {/* Part 2: Progress Bar */}

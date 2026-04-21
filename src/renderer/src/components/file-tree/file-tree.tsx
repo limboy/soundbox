@@ -1,166 +1,98 @@
-import { FolderOpen, RefreshCw } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { Plus, Folder } from 'lucide-react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useLibrary } from '@/store/library-store'
-import { TreeNodeView } from './tree-node'
+import type { CollectionType } from '../../../../preload/soundbox'
 
 export function FileTree(): React.JSX.Element {
   const {
-    rootFolder,
-    tree,
-    selectedFolder,
-    selectedAudio,
-    loading,
-    error,
-    setRoot,
-    setTree,
-    selectFolder,
-    selectAudio,
-    setLoading,
-    setError
+    collections,
+    selectedCollectionId,
+    selectCollection,
+    addCollection
   } = useLibrary()
-  const [isDragOver, setIsDragOver] = useState(false)
 
-  const refresh = useCallback(
-    async (root: string) => {
-      setLoading(true)
-      setError(null)
-      try {
-        const t = await window.soundbox.readTree(root)
-        setTree(t)
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e))
-      } finally {
-        setLoading(false)
-      }
-    },
-    [setLoading, setError, setTree]
-  )
+  const [showCreate, setShowCreate] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [newType, setNewType] = useState<CollectionType>('Music')
 
-  useEffect(() => {
-    if (rootFolder) void refresh(rootFolder)
-    else setTree(null)
-  }, [rootFolder, refresh, setTree])
-
-  useEffect(() => {
-    const off = window.soundbox.onLibraryChanged(({ kind }) => {
-      if (kind === 'tree' && rootFolder) void refresh(rootFolder)
-    })
-    return off
-  }, [rootFolder, refresh])
-
-  const handlePick = async (): Promise<void> => {
-    const picked = await window.soundbox.openFolder()
-    if (!picked) return
-    setRoot(picked)
-    await window.soundbox.setState({ rootFolder: picked, lastAudioPath: null })
-  }
-
-  const handleDragOver = (e: React.DragEvent): void => {
+  const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
-    setIsDragOver(true)
-  }
-
-  const handleDragLeave = (): void => {
-    setIsDragOver(false)
-  }
-
-  const handleDrop = async (e: React.DragEvent): Promise<void> => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragOver(false)
-    const files = Array.from(e.dataTransfer.files)
-    if (files.length === 0) return
-
-    const file = files[0]
-    const path = window.soundbox.getPathForFile(file)
-    if (!path) return
-
-    const info = await window.soundbox.getPathInfo(path)
-    if (!info) return
-
-    if (info.isDirectory) {
-      setRoot(path)
-      await window.soundbox.setState({ rootFolder: path, lastAudioPath: null })
-    } else if (info.isFile) {
-      const allowed = ['.mp3', '.m4a', '.m4b', '.flac']
-      if (allowed.includes(info.ext)) {
-        const parent = path.replace(/[/\\][^/\\]+$/, '')
-        setRoot(parent)
-        selectAudio(path)
-        await window.soundbox.setState({ rootFolder: parent, lastAudioPath: path })
-      }
-    }
+    if (!newTitle.trim()) return
+    addCollection(newTitle, newType)
+    setShowCreate(false)
+    setNewTitle('')
+    setNewType('Music')
   }
 
   return (
-    <div
-      className={`flex h-full flex-col border-r transition-colors ${
-        isDragOver ? 'bg-primary/5 ring-2 ring-inset ring-primary/20' : ''
-      }`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
+    <div className="flex h-full flex-col border-r bg-background">
       <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
         <div className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {rootFolder ? rootFolder.split(/[/\\]/).pop() : 'No folder'}
+          Collections
         </div>
         <div className="flex items-center gap-1">
           <Button
             size="icon"
             variant="ghost"
             className="h-7 w-7"
-            disabled={!rootFolder || loading}
-            onClick={() => rootFolder && refresh(rootFolder)}
-            title="Refresh"
+            onClick={() => setShowCreate(true)}
+            title="Create Collection"
           >
-            <RefreshCw className={loading ? 'h-3.5 w-3.5 animate-spin' : 'h-3.5 w-3.5'} />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7"
-            onClick={handlePick}
-            title="Open folder"
-          >
-            <FolderOpen className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
-      <ScrollArea className="flex-1">
-        {!rootFolder && (
-          <div className="p-4 text-sm text-muted-foreground">
-            <Button onClick={handlePick} variant="outline" className="w-full">
-              <FolderOpen className="h-4 w-4" />
-              Open folder
-            </Button>
-          </div>
-        )}
-        {rootFolder && error && (
-          <div className="p-4 text-sm text-destructive">{error}</div>
-        )}
-        {rootFolder && tree && (
-          <div className="p-1.5">
-            <TreeNodeView
-              node={tree}
-              depth={0}
-              defaultExpanded
-              selectedAudio={selectedAudio}
-              selectedFolder={selectedFolder}
-              onSelectFolder={selectFolder}
-              onSelectAudio={(p) => {
-                selectAudio(p)
-                void window.soundbox.setState({ lastAudioPath: p })
-              }}
+      
+      {showCreate && (
+        <div className="p-3 border-b bg-accent/30">
+          <form onSubmit={handleCreate} className="flex flex-col gap-2">
+            <input
+              type="text"
+              autoFocus
+              className="px-2 py-1 text-sm bg-background border rounded"
+              placeholder="Title"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
             />
+            <select
+              className="px-2 py-1 text-sm bg-background border rounded"
+              value={newType}
+              onChange={(e) => setNewType(e.target.value as CollectionType)}
+            >
+              <option value="Music">Music</option>
+              <option value="Audio Book">Audio Book</option>
+            </select>
+            <div className="flex justify-end gap-2 mt-1">
+              <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setShowCreate(false)}>Cancel</Button>
+              <Button type="submit" size="sm" className="h-6 px-2 text-xs">Create</Button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <ScrollArea className="flex-1 p-2">
+        {collections.length === 0 ? (
+          <div className="p-4 text-center text-sm text-muted-foreground">
+            No collections yet. Click + to create one.
           </div>
-        )}
-        {rootFolder && !tree && !error && (
-          <div className="p-4 text-sm text-muted-foreground">Loading…</div>
+        ) : (
+          <div className="flex flex-col gap-0.5">
+            {collections.map(c => (
+              <button
+                key={c.id}
+                onClick={() => selectCollection(c.id)}
+                className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-left transition-colors ${selectedCollectionId === c.id ? 'bg-primary/20 font-medium text-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}`}
+              >
+                <Folder className="h-4 w-4 shrink-0 opacity-70" />
+                <span className="truncate">{c.title}</span>
+              </button>
+            ))}
+          </div>
         )}
       </ScrollArea>
     </div>
   )
 }
+

@@ -1,70 +1,61 @@
 import { create } from 'zustand'
-import type { TreeNode } from '../../../preload/soundbox'
-
-type DirNode = Extract<TreeNode, { kind: 'dir' }>
-type AudioNode = Extract<TreeNode, { kind: 'audio' }>
+import type { Collection, CollectionType } from '../../../preload/soundbox'
 
 type LibraryState = {
-  rootFolder: string | null
-  tree: TreeNode | null
-  selectedFolder: string | null
+  collections: Collection[]
+  selectedCollectionId: string | null
   selectedAudio: string | null
   loading: boolean
   error: string | null
-  setRoot: (root: string | null) => void
-  setTree: (tree: TreeNode | null) => void
-  selectFolder: (path: string | null) => void
+  trackMeta: Record<string, { artist: string; album: string; title: string } | null>
+  trackDurations: Record<string, number | null>
+  setCollections: (collections: Collection[]) => void
+  addCollection: (title: string, type: CollectionType) => void
+  setTrackMeta: (path: string, meta: { artist: string; album: string; title: string } | null) => void
+  setTrackDuration: (path: string, duration: number | null) => void
+  selectCollection: (id: string | null) => void
+  addItemsToSelectedCollection: (paths: string[]) => void
   selectAudio: (path: string | null) => void
   setLoading: (loading: boolean) => void
   setError: (err: string | null) => void
 }
 
-export const useLibrary = create<LibraryState>((set) => ({
-  rootFolder: null,
-  tree: null,
-  selectedFolder: null,
+export const useLibrary = create<LibraryState>((set, get) => ({
+  collections: [],
+  selectedCollectionId: null,
   selectedAudio: null,
   loading: false,
   error: null,
-  setRoot: (rootFolder) =>
-    set({
-      rootFolder,
-      selectedFolder: rootFolder,
-      selectedAudio: null,
-      tree: null
-    }),
-  setTree: (tree) => set({ tree }),
-  selectFolder: (selectedFolder) => set({ selectedFolder }),
+  trackMeta: {},
+  trackDurations: {},
+  setCollections: (collections) => set({ collections }),
+  addCollection: (title, type) => {
+    const id = Date.now().toString()
+    const newCollection: Collection = { id, title, type, items: [] }
+    const next = [...get().collections, newCollection]
+    set({ collections: next, selectedCollectionId: id })
+    void window.soundbox.setState({ collections: next, selectedCollectionId: id })
+  },
+  setTrackMeta: (path, meta) => set((s) => ({ trackMeta: { ...s.trackMeta, [path]: meta } })),
+  setTrackDuration: (path, duration) => set((s) => ({ trackDurations: { ...s.trackDurations, [path]: duration } })),
+  selectCollection: (id) => {
+    set({ selectedCollectionId: id })
+    void window.soundbox.setState({ selectedCollectionId: id })
+  },
+  addItemsToSelectedCollection: (paths) => {
+    const { collections, selectedCollectionId } = get()
+    if (!selectedCollectionId) return
+    const next = collections.map(c => {
+      if (c.id === selectedCollectionId) {
+        const set = new Set([...c.items, ...paths])
+        return { ...c, items: Array.from(set) }
+      }
+      return c
+    })
+    set({ collections: next })
+    void window.soundbox.setState({ collections: next })
+  },
   selectAudio: (selectedAudio) => set({ selectedAudio }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error })
 }))
-
-export function findDirNode(tree: TreeNode | null, path: string | null): DirNode | null {
-  if (!tree || !path) return null
-  if (tree.kind !== 'dir') return null
-  if (tree.path === path) return tree
-  for (const child of tree.children) {
-    if (child.kind === 'dir') {
-      const hit = findDirNode(child, path)
-      if (hit) return hit
-    }
-  }
-  return null
-}
-
-export function audioChildren(dir: DirNode | null): AudioNode[] {
-  if (!dir) return []
-  return dir.children.filter((c): c is AudioNode => c.kind === 'audio')
-}
-
-export function flatAudioList(tree: TreeNode | null): AudioNode[] {
-  if (!tree) return []
-  const out: AudioNode[] = []
-  const visit = (n: TreeNode): void => {
-    if (n.kind === 'audio') out.push(n)
-    else n.children.forEach(visit)
-  }
-  visit(tree)
-  return out
-}

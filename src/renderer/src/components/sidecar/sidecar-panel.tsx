@@ -17,6 +17,10 @@ export function SidecarPanel(): React.JSX.Element {
   const [active, setActive] = useState<string | null>(null)
   const reqId = useRef(0)
 
+  const collections = useLibrary((s) => s.collections)
+  const selectedCollectionId = useLibrary((s) => s.selectedCollectionId)
+  const activeCollection = collections.find(c => c.id === selectedCollectionId)
+
   useEffect(() => {
     reqId.current += 1
     const myReq = reqId.current
@@ -25,7 +29,23 @@ export function SidecarPanel(): React.JSX.Element {
     setActive(null)
     if (!selectedAudio) return
     void (async () => {
-      const list = await window.soundbox.findCompanions(selectedAudio).catch(() => [])
+      let list = await window.soundbox.findCompanions(selectedAudio).catch(() => [])
+      
+      // Auto-fetch lyrics for music if none found
+      if (activeCollection?.type === 'Music' && !list.some(c => c.ext === '.lrc')) {
+        const meta = await window.soundbox.probeMetadata(selectedAudio).catch(() => null)
+        const dur = await window.soundbox.probeDuration(selectedAudio).catch(() => null)
+        if (meta && dur && meta.title && meta.artist) {
+          const cachePath = await window.soundbox.fetchAndCacheLyrics(
+            selectedAudio, meta.title, meta.artist, meta.album, dur / 1000
+          ).catch(() => null)
+          if (cachePath) {
+             // Let's just requery companions
+             list = await window.soundbox.findCompanions(selectedAudio).catch(() => [])
+          }
+        }
+      }
+
       if (reqId.current !== myReq) return
       setCompanions(list)
       if (list[0]) setActive(list[0].path)
@@ -40,7 +60,7 @@ export function SidecarPanel(): React.JSX.Element {
       }
       setContent(loaded)
     })()
-  }, [selectedAudio])
+  }, [selectedAudio, activeCollection?.type])
 
   useEffect(() => {
     const off = window.soundbox.onLibraryChanged(async ({ kind, path }) => {
@@ -68,17 +88,19 @@ export function SidecarPanel(): React.JSX.Element {
         onValueChange={setActive}
         className="flex h-full min-h-0 flex-col"
       >
-        <TabsList className="mx-2 mt-2 inline-flex h-auto flex-wrap gap-1 bg-transparent p-0">
-          {companions.map((c) => (
-            <TabsTrigger
-              key={c.path}
-              value={c.path}
-              className="h-7 px-2 text-xs data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
-            >
-              {basename(c.path)}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        {companions.length > 1 && (
+          <TabsList className="mx-2 mt-2 inline-flex h-auto flex-wrap gap-1 bg-transparent p-0">
+            {companions.map((c) => (
+              <TabsTrigger
+                key={c.path}
+                value={c.path}
+                className="h-7 px-2 text-xs data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+              >
+                {basename(c.path)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        )}
         {companions.map((c) => (
           <TabsContent
             key={c.path}

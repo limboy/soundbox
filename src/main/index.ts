@@ -77,7 +77,7 @@ app.whenReady().then(async () => {
 
   registerLocalProtocolHandler(getRoot)
   registerDialogIpc(getWindow)
-  registerFsIpc(getRoot)
+  registerFsIpc()
   registerStoreIpc((next) => applyRoot(next.rootFolder))
 
   const initial = await readState()

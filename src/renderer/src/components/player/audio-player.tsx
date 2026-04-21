@@ -1,15 +1,19 @@
 import { useEffect, useRef } from 'react'
 import { pathToLocalUrl } from '@/lib/audio-extensions'
 import { secondsToMs } from '@/lib/format-time'
-import { useLibrary, findDirNode, audioChildren } from '@/store/library-store'
+import { useLibrary } from '@/store/library-store'
 import { usePlayer } from '@/store/player-store'
 import { TransportControls } from './transport-controls'
 
 export function AudioPlayer(): React.JSX.Element {
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  
   const selectedAudio = useLibrary((s) => s.selectedAudio)
-  const tree = useLibrary((s) => s.tree)
+  const collections = useLibrary((s) => s.collections)
+  const selectedCollectionId = useLibrary((s) => s.selectedCollectionId)
   const selectAudio = useLibrary((s) => s.selectAudio)
+
+  const activeCollection = collections.find(c => c.id === selectedCollectionId)
 
   const isPlaying = usePlayer((s) => s.isPlaying)
   const setPlaying = usePlayer((s) => s.setPlaying)
@@ -59,14 +63,14 @@ export function AudioPlayer(): React.JSX.Element {
   const loopMode = usePlayer((s) => s.loopMode)
 
   const onNext = (): void => {
-    const list = audioChildren(findDirNode(tree, parentDir(selectedAudio)))
+    const list = activeCollection?.items ?? []
     if (!selectedAudio || list.length === 0) return
-    const idx = list.findIndex((n) => n.path === selectedAudio)
+    const idx = list.indexOf(selectedAudio)
+    if (idx === -1) return
     
     let nextIdx: number
     if (shuffle) {
       nextIdx = Math.floor(Math.random() * list.length)
-      // Try to avoid the same song if list > 1
       if (nextIdx === idx && list.length > 1) {
         nextIdx = (nextIdx + 1) % list.length
       }
@@ -75,14 +79,15 @@ export function AudioPlayer(): React.JSX.Element {
     }
     
     const next = list[nextIdx]
-    selectAudio(next.path)
-    void window.soundbox.setState({ lastAudioPath: next.path })
+    selectAudio(next)
+    void window.soundbox.setState({ lastAudioPath: next })
   }
 
   const onPrev = (): void => {
-    const list = audioChildren(findDirNode(tree, parentDir(selectedAudio)))
+    const list = activeCollection?.items ?? []
     if (!selectedAudio || list.length === 0) return
-    const idx = list.findIndex((n) => n.path === selectedAudio)
+    const idx = list.indexOf(selectedAudio)
+    if (idx === -1) return
     
     let prevIdx: number
     if (shuffle) {
@@ -95,8 +100,8 @@ export function AudioPlayer(): React.JSX.Element {
     }
     
     const prev = list[prevIdx]
-    selectAudio(prev.path)
-    void window.soundbox.setState({ lastAudioPath: prev.path })
+    selectAudio(prev)
+    void window.soundbox.setState({ lastAudioPath: prev })
   }
 
   return (
@@ -125,8 +130,6 @@ export function AudioPlayer(): React.JSX.Element {
           } else if (loopMode === 'all' || !shuffle) {
             onNext()
           } else {
-            // Case for shuffle but loop off? Usually shuffle implies some form of repeat or just stops.
-            // Many players continue to next shuffle even if loop is off.
             onNext()
           }
         }}
@@ -165,11 +168,4 @@ export function AudioPlayer(): React.JSX.Element {
       />
     </div>
   )
-}
-
-
-function parentDir(path: string | null): string | null {
-  if (!path) return null
-  const i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))
-  return i < 0 ? null : path.slice(0, i)
 }

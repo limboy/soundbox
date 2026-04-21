@@ -67,6 +67,10 @@ export function flattenAudio(node: TreeNode): Array<Extract<TreeNode, { kind: 'a
   return out
 }
 
+import { app } from 'electron'
+import crypto from 'node:crypto'
+import { access } from 'node:fs/promises'
+
 export async function findCompanions(
   audioPath: string
 ): Promise<Array<{ ext: string; path: string }>> {
@@ -76,7 +80,7 @@ export async function findCompanions(
   try {
     entries = (await readdir(dir, { withFileTypes: true })) as Dirent[]
   } catch {
-    return []
+    entries = []
   }
   const out: Array<{ ext: string; path: string }> = []
   for (const entry of entries) {
@@ -87,6 +91,19 @@ export async function findCompanions(
     if (entryBase !== base) continue
     out.push({ ext, path: join(dir, entry.name) })
   }
+
+  // Also check lrclib cache
+  try {
+    const lyricsCacheDir = join(app.getPath('userData'), 'lyricsCache')
+    const hash = crypto.createHash('md5').update(audioPath).digest('hex')
+    const cachePath = join(lyricsCacheDir, `${hash}.lrc`)
+    await access(cachePath)
+    // If it exists, add it to companions if not already present
+    if (!out.find(c => c.ext === '.lrc')) {
+      out.push({ ext: '.lrc', path: cachePath })
+    }
+  } catch {}
+
   out.sort((a, b) => extOrder(a.ext) - extOrder(b.ext))
   return out
 }

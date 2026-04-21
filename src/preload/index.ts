@@ -14,8 +14,12 @@ const soundbox = {
     >,
   probeDuration: (path: string) =>
     ipcRenderer.invoke('soundbox:probeDuration', path) as Promise<number | null>,
+  probeMetadata: (path: string) =>
+    ipcRenderer.invoke('soundbox:probeMetadata', path) as Promise<{ artist: string; album: string; title: string } | null>,
+  fetchAndCacheLyrics: (path: string, trackName: string, artistName: string, albumName: string, duration: number) =>
+    ipcRenderer.invoke('soundbox:fetchAndCacheLyrics', path, trackName, artistName, albumName, duration) as Promise<string | null>,
   getState: () => ipcRenderer.invoke('soundbox:getState'),
-  setState: (patch: { rootFolder?: string | null; lastAudioPath?: string | null }) =>
+  setState: (patch: any) =>
     ipcRenderer.invoke('soundbox:setState', patch),
   onLibraryChanged: (cb: (payload: { kind: 'tree' | 'text'; path: string }) => void) => {
     const listener = (_: IpcRendererEvent, payload: { kind: 'tree' | 'text'; path: string }): void =>

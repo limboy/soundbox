@@ -2,13 +2,25 @@ import { app } from 'electron'
 import { readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
+export type CollectionType = 'Music' | 'Audio Book'
+export type Collection = {
+  id: string
+  title: string
+  type: CollectionType
+  items: string[] // Array of file paths
+}
+
 export type AppState = {
   rootFolder: string | null
+  collections: Collection[]
+  selectedCollectionId: string | null
   lastAudioPath: string | null
 }
 
 const DEFAULT: AppState = {
   rootFolder: null,
+  collections: [],
+  selectedCollectionId: null,
   lastAudioPath: null
 }
 

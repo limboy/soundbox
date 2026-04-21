@@ -23,7 +23,8 @@ import { useLibrary } from '@/store/library-store'
 import { useUI } from '@/store/ui-store'
 
 export function PlayerRoute(): React.JSX.Element {
-  const setRoot = useLibrary((s) => s.setRoot)
+  const setCollections = useLibrary((s) => s.setCollections)
+  const selectCollection = useLibrary((s) => s.selectCollection)
   const selectAudio = useLibrary((s) => s.selectAudio)
 
   const leftPanelRef = useRef<PanelImperativeHandle>(null)
@@ -37,14 +38,17 @@ export function PlayerRoute(): React.JSX.Element {
   useEffect(() => {
     void (async () => {
       const state = await window.soundbox.getState()
-      if (state.rootFolder) {
-        setRoot(state.rootFolder)
-        if (state.lastAudioPath) {
-          queueMicrotask(() => selectAudio(state.lastAudioPath))
-        }
+      if (state.collections) {
+        setCollections(state.collections)
+      }
+      if (state.selectedCollectionId) {
+        selectCollection(state.selectedCollectionId)
+      }
+      if (state.lastAudioPath) {
+        queueMicrotask(() => selectAudio(state.lastAudioPath))
       }
     })()
-  }, [setRoot, selectAudio])
+  }, [setCollections, selectCollection, selectAudio])
 
   const toggleLeft = useCallback(() => {
     const panel = leftPanelRef.current
@@ -128,7 +132,9 @@ export function PlayerRoute(): React.JSX.Element {
           maxSize="30%"
           collapsible
           collapsedSize="0%"
+          // @ts-ignore
           onCollapse={() => setLeftSidebarOpen(false)}
+          // @ts-ignore
           onExpand={() => setLeftSidebarOpen(true)}
           className="h-full"
         >
@@ -150,7 +156,9 @@ export function PlayerRoute(): React.JSX.Element {
           minSize="15%"
           collapsible
           collapsedSize="0%"
+          // @ts-ignore
           onCollapse={() => setRightSidebarOpen(false)}
+          // @ts-ignore
           onExpand={() => setRightSidebarOpen(true)}
           className="h-full"
         >
