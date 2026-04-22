@@ -356,7 +356,7 @@ export function AudioList(): React.JSX.Element {
       <Table className="min-w-full table-fixed border-collapse">
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <TableHeader className="sticky top-39.5 z-20 bg-background">
+            <TableHeader className="sticky top-39.5 z-20 bg-muted/50 backdrop-blur-sm">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
