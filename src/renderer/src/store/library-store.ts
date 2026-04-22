@@ -50,11 +50,19 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     const { collections, selectedCollectionId } = get()
     const next = collections.filter((c) => c.id !== id)
     let nextSelectedId = selectedCollectionId
+    let nextSelectedAudio = get().selectedAudio
+
     if (selectedCollectionId === id) {
       nextSelectedId = next.length > 0 ? next[0].id : null
+      nextSelectedAudio = next.length > 0 ? next[0].items?.[0] || null : null
     }
-    set({ collections: next, selectedCollectionId: nextSelectedId })
-    void window.soundbox.setState({ collections: next, selectedCollectionId: nextSelectedId })
+
+    set({ collections: next, selectedCollectionId: nextSelectedId, selectedAudio: nextSelectedAudio })
+    void window.soundbox.setState({
+      collections: next,
+      selectedCollectionId: nextSelectedId,
+      lastAudioPath: nextSelectedAudio
+    })
   },
   setTrackMeta: (path, meta) => set((s) => ({ trackMeta: { ...s.trackMeta, [path]: meta } })),
   setTrackDuration: (path, duration) => set((s) => ({ trackDurations: { ...s.trackDurations, [path]: duration } })),
@@ -68,8 +76,14 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     return { trackMeta: nextMeta, trackDurations: nextDurations }
   }),
   selectCollection: (id) => {
-    set({ selectedCollectionId: id })
-    void window.soundbox.setState({ selectedCollectionId: id })
+    const { collections, selectedCollectionId } = get()
+    if (selectedCollectionId === id) return
+
+    const collection = collections.find((c) => c.id === id)
+    const firstAudio = collection?.items?.[0] || null
+
+    set({ selectedCollectionId: id, selectedAudio: firstAudio })
+    void window.soundbox.setState({ selectedCollectionId: id, lastAudioPath: firstAudio })
   },
   addItemsToSelectedCollection: (paths) => {
     const { collections, selectedCollectionId } = get()
