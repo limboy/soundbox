@@ -82,7 +82,7 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     if (selectedCollectionId === id) return
 
     const collection = collections.find((c) => c.id === id)
-    let firstAudio = null
+    let firstAudio: string | null = null
     if (collection && collection.items.length > 0) {
       const sorted = [...collection.items].sort((a, b) => {
         const metaA = trackMeta[a]
