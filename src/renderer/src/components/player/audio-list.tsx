@@ -1,5 +1,5 @@
 import { FileAudio, Play, ChevronsUpDown, ArrowUp, ArrowDown } from 'lucide-react'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Table,
   TableBody,
@@ -43,10 +43,8 @@ export function AudioList(): React.JSX.Element {
   const selectedCollectionId = useLibrary((s) => s.selectedCollectionId)
   const selectedAudio = useLibrary((s) => s.selectedAudio)
   const selectAudio = useLibrary((s) => s.selectAudio)
-  const addItemsToSelectedCollection = useLibrary((s) => s.addItemsToSelectedCollection)
   const setPlaying = usePlayer((s) => s.setPlaying)
 
-  const [isDragOver, setIsDragOver] = useState(false)
   const trackMeta = useLibrary((s) => s.trackMeta)
   const trackDurations = useLibrary((s) => s.trackDurations)
   const setTrackMeta = useLibrary((s) => s.setTrackMeta)
@@ -268,44 +266,6 @@ export function AudioList(): React.JSX.Element {
     getSortedRowModel: getSortedRowModel()
   })
 
-  const handleDragOver = (e: React.DragEvent): void => {
-    e.preventDefault()
-    if (activeCollection) setIsDragOver(true)
-  }
-  const handleDragLeave = (): void => setIsDragOver(false)
-  const handleDrop = async (e: React.DragEvent): Promise<void> => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragOver(false)
-    if (!activeCollection) return
-
-    const files = Array.from(e.dataTransfer.files)
-    if (files.length === 0) return
-
-    const paths: string[] = []
-    const folderPaths: string[] = []
-    for (const file of files) {
-      const p = window.soundbox.getPathForFile(file)
-      if (!p) continue
-      const info = await window.soundbox.getPathInfo(p)
-      if (!info) continue
-      if (info.isFile) {
-        const allowed = ['.mp3', '.m4a', '.m4b', '.flac']
-        if (allowed.includes(info.ext)) paths.push(p)
-      } else if (info.isDirectory) {
-        folderPaths.push(p)
-        const tree = await window.soundbox.readTree(p)
-        const flatten = (n: import('../../../../preload/soundbox').TreeNode): void => {
-          if (n.kind === 'audio') paths.push(n.path)
-          if (n.kind === 'dir') n.children.forEach(flatten)
-        }
-        flatten(tree)
-      }
-    }
-    if (paths.length > 0) addItemsToSelectedCollection(paths)
-    if (folderPaths.length > 0) useLibrary.getState().addFoldersToSelectedCollection(folderPaths)
-  }
-
   if (!activeCollection) {
     return (
       <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
@@ -319,15 +279,7 @@ export function AudioList(): React.JSX.Element {
 
   if (rows.length === 0) {
     return (
-      <div
-        className={cn(
-          'flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground transition-colors',
-          isDragOver ? 'bg-primary/5 ring-2 ring-inset ring-primary/20' : ''
-        )}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
+      <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
         <div>
           <FileAudio className="mx-auto h-8 w-8 opacity-30" />
           <p className="mt-2">Drag and drop audio files here.</p>
@@ -337,12 +289,7 @@ export function AudioList(): React.JSX.Element {
   }
 
   return (
-    <div
-      className={cn('w-full', isDragOver ? 'bg-primary/5 ring-2 ring-inset ring-primary/20' : '')}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
+    <div className="w-full">
       <Table className="min-w-full table-fixed border-collapse">
         <ContextMenu>
           <ContextMenuTrigger asChild>

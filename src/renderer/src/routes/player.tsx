@@ -1,13 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
-import {
-  PanelLeft
-} from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { PanelLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TwoPane } from '@/components/layout/two-pane'
 import { FileTree } from '@/components/file-tree/file-tree'
 import { AudioList } from '@/components/player/audio-list'
 import { AudioPlayer } from '@/components/player/audio-player'
+import { cn } from '@/lib/utils'
 import { useLibrary } from '@/store/library-store'
 import { useUI } from '@/store/ui-store'
 
@@ -73,9 +72,7 @@ export function PlayerRoute(): React.JSX.Element {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       {/* Global Top Navigation Bar */}
-      <header
-        className="app-drag flex h-10 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-3"
-      >
+      <header className="app-drag flex h-10 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-3">
         {/* Left: macOS traffic light spacer + left sidebar toggler */}
         <div className="flex items-center gap-1 shrink-0" style={{ paddingLeft: 64 }}>
           {!isCompact && (
@@ -87,11 +84,12 @@ export function PlayerRoute(): React.JSX.Element {
               aria-pressed={leftSidebarOpen}
               onClick={toggleLeft}
             >
-              <PanelLeft className={`size-4 transition-opacity ${leftSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
+              <PanelLeft
+                className={`size-4 transition-opacity ${leftSidebarOpen ? 'opacity-100' : 'opacity-50'}`}
+              />
             </Button>
           )}
         </div>
-
       </header>
 
       {/* Main Content */}
@@ -100,18 +98,109 @@ export function PlayerRoute(): React.JSX.Element {
         leftWidth={leftSidebarWidth}
         onLeftWidthChange={setLeftSidebarWidth}
         left={<FileTree />}
-        center={
-          <div className="h-full w-full" style={{ containerType: 'inline-size' }}>
-            <ScrollArea className="h-full">
-              <div className="sticky top-0 left-0 z-30 w-[100cqw] bg-background/95 backdrop-blur-md">
-                <AudioPlayer />
-              </div>
-              <AudioList />
-            </ScrollArea>
-          </div>
-        }
+        center={<PlayerCenter />}
       />
     </div>
   )
 }
 
+function PlayerCenter(): React.JSX.Element {
+  const selectedCollectionId = useLibrary((s) => s.selectedCollectionId)
+  const addItemsToSelectedCollection = useLibrary((s) => s.addItemsToSelectedCollection)
+
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [playerHeight, setPlayerHeight] = useState(0)
+  const playerRef = useRef<HTMLDivElement>(null)
+  const dragCounter = useRef(0)
+
+  useEffect(() => {
+    const el = playerRef.current
+    if (!el) return
+    const ro = new ResizeObserver((entries) => {
+      setPlayerHeight(entries[0].contentRect.height)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const handleDragEnter = (e: React.DragEvent): void => {
+    e.preventDefault()
+    dragCounter.current++
+    if (selectedCollectionId) setIsDragOver(true)
+  }
+
+  const handleDragLeave = (): void => {
+    dragCounter.current--
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0
+      setIsDragOver(false)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent): void => {
+    e.preventDefault()
+  }
+
+  const handleDrop = async (e: React.DragEvent): Promise<void> => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounter.current = 0
+    setIsDragOver(false)
+    if (!selectedCollectionId) return
+
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length === 0) return
+
+    const paths: string[] = []
+    const folderPaths: string[] = []
+    for (const file of files) {
+      const p = window.soundbox.getPathForFile(file)
+      if (!p) continue
+      const info = await window.soundbox.getPathInfo(p)
+      if (!info) continue
+      if (info.isFile) {
+        const allowed = ['.mp3', '.m4a', '.m4b', '.flac']
+        if (allowed.includes(info.ext)) paths.push(p)
+      } else if (info.isDirectory) {
+        folderPaths.push(p)
+        const tree = await window.soundbox.readTree(p)
+        const flatten = (n: import('../../../preload/soundbox').TreeNode): void => {
+          if (n.kind === 'audio') paths.push(n.path)
+          if (n.kind === 'dir') n.children.forEach(flatten)
+        }
+        flatten(tree)
+      }
+    }
+    if (paths.length > 0) addItemsToSelectedCollection(paths)
+    if (folderPaths.length > 0) useLibrary.getState().addFoldersToSelectedCollection(folderPaths)
+  }
+
+  return (
+    <div
+      className="h-full w-full relative"
+      style={{ containerType: 'inline-size' }}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      <ScrollArea className="h-full">
+        <div
+          ref={playerRef}
+          className="sticky top-0 left-0 z-30 w-[100cqw] bg-background/95 backdrop-blur-md"
+        >
+          <AudioPlayer />
+        </div>
+        <AudioList />
+      </ScrollArea>
+      <div
+        className={cn(
+          'absolute inset-x-0 bottom-0 pointer-events-none z-40 transition-opacity',
+          isDragOver ? 'opacity-100' : 'opacity-0',
+          'bg-primary/5 ring-2 ring-inset ring-primary/20'
+        )}
+        style={{ top: playerHeight }}
+      />
+    </div>
+  )
+}
