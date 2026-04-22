@@ -8,7 +8,6 @@ import { TwoPane } from '@/components/layout/two-pane'
 import { FileTree } from '@/components/file-tree/file-tree'
 import { AudioList } from '@/components/player/audio-list'
 import { AudioPlayer } from '@/components/player/audio-player'
-import { ThemeSwitcher } from '@/components/theme-switcher'
 import { useLibrary } from '@/store/library-store'
 import { useUI } from '@/store/ui-store'
 
@@ -80,10 +79,6 @@ export function PlayerRoute(): React.JSX.Element {
           )}
         </div>
 
-        {/* Right: theme switcher */}
-        <div className="app-no-drag flex items-center gap-2 shrink-0">
-          <ThemeSwitcher />
-        </div>
       </header>
 
       {/* Main Content */}
