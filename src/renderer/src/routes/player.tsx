@@ -242,7 +242,7 @@ function PlayerCenter(): React.JSX.Element {
       >
         <AudioPlayer />
       </div>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <AudioList />
       </ScrollArea>
       <div

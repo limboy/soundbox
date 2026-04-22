@@ -299,10 +299,8 @@ export function AudioList(): React.JSX.Element {
     getSortedRowModel: getSortedRowModel()
   })
 
-  let content: React.ReactNode
-
   if (!activeCollection) {
-    content = (
+    return (
       <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
         <div>
           <FileAudio className="mx-auto h-8 w-8 opacity-30" />
@@ -310,8 +308,10 @@ export function AudioList(): React.JSX.Element {
         </div>
       </div>
     )
-  } else if (rows.length === 0) {
-    content = (
+  }
+
+  if (rows.length === 0) {
+    return (
       <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
         <div>
           <FileAudio className="mx-auto h-8 w-8 opacity-30" />
@@ -319,108 +319,102 @@ export function AudioList(): React.JSX.Element {
         </div>
       </div>
     )
-  } else {
-    content = (
-      <Table className="min-w-full table-fixed border-collapse">
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <TableHeader className="sticky top-33.5 z-20 bg-muted/50 backdrop-blur-sm">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="group whitespace-nowrap relative last:border-0 hover:border-border/30 transition-colors"
-                      style={{ width: header.getSize() }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-
-                      {/* Bottom Border */}
-                      <div className="absolute inset-x-0 bottom-0 h-px bg-border z-30 pointer-events-none" />
-
-                      {header.column.getCanResize() && !header.column.getIsLastColumn() && (
-                        <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className={cn(
-                            'absolute top-0 bottom-0 -right-1.5 w-3 cursor-col-resize select-none touch-none z-20 group/resizer bg-transparent',
-                            header.column.getIsResizing() ? '' : ''
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              'absolute top-2 bottom-2 right-[5.5px] w-px bg-border transition-colors',
-                              header.column.getIsResizing()
-                                ? 'bg-primary w-0.5'
-                                : 'group-hover/resizer:bg-primary/50'
-                            )}
-                          />
-                        </div>
-                      )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-          </ContextMenuTrigger>
-          <ContextMenuContent className="w-48">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <ContextMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                  >
-                    {column.id}
-                  </ContextMenuCheckboxItem>
-                )
-              })}
-          </ContextMenuContent>
-        </ContextMenu>
-        <TableBody>
-          {table.getRowModel().rows.map((row, i) => {
-            const active = row.original.path === selectedAudio
-            return (
-              <TableRow
-                key={row.id}
-                onClick={() => {
-                  selectAudio(row.original.path)
-                  void window.soundbox.setState({ lastAudioPath: row.original.path })
-                  setPlaying(true)
-                }}
-                onContextMenu={(e) => {
-                  e.preventDefault()
-                  void window.soundbox.showSongContextMenu(row.original.path)
-                }}
-                className={cn('group', active && 'bg-accent/60')}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
-                    <div className="truncate">
-                      {flexRender(cell.column.columnDef.cell, {
-                        ...cell.getContext(),
-                        displayIndex: i + 1
-                      } as any)}
-                    </div>
-                  </TableCell>
-                ))}
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
-    )
   }
 
   return (
-    <div className="flex w-full flex-1 flex-col">
-      {content}
-    </div>
+    <Table className="min-w-full table-fixed border-collapse">
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <TableHeader className="sticky top-0 z-20 bg-muted/50 backdrop-blur-sm">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className="group whitespace-nowrap relative last:border-0 hover:border-border/30 transition-colors"
+                    style={{ width: header.getSize() }}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+
+                    {/* Bottom Border */}
+                    <div className="absolute inset-x-0 bottom-0 h-px bg-border z-30 pointer-events-none" />
+
+                    {header.column.getCanResize() && !header.column.getIsLastColumn() && (
+                      <div
+                        onMouseDown={header.getResizeHandler()}
+                        onTouchStart={header.getResizeHandler()}
+                        className={cn(
+                          'absolute top-0 bottom-0 -right-1.5 w-3 cursor-col-resize select-none touch-none z-20 group/resizer bg-transparent',
+                          header.column.getIsResizing() ? '' : ''
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            'absolute top-2 bottom-2 right-[5.5px] w-px bg-border transition-colors',
+                            header.column.getIsResizing()
+                              ? 'bg-primary w-0.5'
+                              : 'group-hover/resizer:bg-primary/50'
+                          )}
+                        />
+                      </div>
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+        </ContextMenuTrigger>
+        <ContextMenuContent className="w-48">
+          {table
+            .getAllColumns()
+            .filter((column) => column.getCanHide())
+            .map((column) => {
+              return (
+                <ContextMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {column.id}
+                </ContextMenuCheckboxItem>
+              )
+            })}
+        </ContextMenuContent>
+      </ContextMenu>
+      <TableBody>
+        {table.getRowModel().rows.map((row, i) => {
+          const active = row.original.path === selectedAudio
+          return (
+            <TableRow
+              key={row.id}
+              onClick={() => {
+                selectAudio(row.original.path)
+                void window.soundbox.setState({ lastAudioPath: row.original.path })
+                setPlaying(true)
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault()
+                void window.soundbox.showSongContextMenu(row.original.path)
+              }}
+              className={cn('group', active && 'bg-accent/60')}
+            >
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
+                  <div className="truncate">
+                    {flexRender(cell.column.columnDef.cell, {
+                      ...cell.getContext(),
+                      displayIndex: i + 1
+                    } as any)}
+                  </div>
+                </TableCell>
+              ))}
+            </TableRow>
+          )
+        })}
+      </TableBody>
+    </Table>
   )
 }
