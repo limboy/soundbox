@@ -39,8 +39,10 @@ function normalizePath(p: string): string {
 function updateAuthorizedPaths(state: AppState): void {
   authorizedPaths.clear()
   for (const c of state.collections) {
-    for (const item of c.items) {
-      authorizedPaths.add(normalizePath(item))
+    if (c.items) {
+      for (const item of c.items) {
+        authorizedPaths.add(normalizePath(item))
+      }
     }
   }
 }
@@ -72,8 +74,12 @@ let writeQueue = Promise.resolve()
 export async function writeState(patch: Partial<AppState>): Promise<AppState> {
   const current = await readState()
   const next = { ...current, ...patch }
+  const collectionsChanged = patch.collections !== undefined
+
   cached = next
-  updateAuthorizedPaths(cached)
+  if (collectionsChanged) {
+    updateAuthorizedPaths(cached)
+  }
 
   const promise = writeQueue.then(async () => {
     const path = storePath()

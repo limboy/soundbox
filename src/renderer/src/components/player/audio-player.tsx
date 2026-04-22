@@ -179,7 +179,7 @@ export function AudioPlayer(): React.JSX.Element {
       <audio
         ref={audioRef}
         src={selectedAudio ? pathToLocalUrl(selectedAudio) : undefined}
-        preload="metadata"
+        preload="auto"
         autoPlay={isPlaying}
         onPlay={() => {
           console.log('[AudioPlayer] play')

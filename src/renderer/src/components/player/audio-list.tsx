@@ -74,27 +74,33 @@ export function AudioList(): React.JSX.Element {
 
       setBulkTrackInfo(bulk)
 
-      for (const p of pathsToCheck) {
+      const currentMeta = useLibrary.getState().trackMeta
+      const currentDurations = useLibrary.getState().trackDurations
+
+      const missing = pathsToCheck.filter(
+        (p) => !(p in currentMeta) || !(p in currentDurations)
+      )
+      if (missing.length === 0) return
+
+      for (const p of missing) {
         if (cancelled) return
 
         const info = await window.soundbox.getPathInfo(p).catch(() => null)
         if (!info) continue
 
-        if (!(p in trackDurations) && !bulk[p]) {
+        if (!(p in currentDurations)) {
           const d = await window.soundbox.probeDuration(p).catch(() => null)
           if (cancelled) return
           setTrackDuration(p, d)
         }
 
-        if (!(p in trackMeta) && !bulk[p]) {
+        if (!(p in currentMeta)) {
           const m = await window.soundbox.probeMetadata(p).catch(() => null)
           if (cancelled) return
           setTrackMeta(p, m || { artist: 'Unknown', album: 'Unknown', title: basename(p) })
         }
       }
     }
-
-
 
     void checkAll()
 
@@ -112,9 +118,7 @@ export function AudioList(): React.JSX.Element {
     rows,
     setBulkTrackInfo,
     setTrackDuration,
-    setTrackMeta,
-    trackDurations,
-    trackMeta
+    setTrackMeta
   ])
 
   const data = useMemo<AudioItem[]>(() => {
