@@ -3,10 +3,11 @@
 All notable changes to this project are documented here.
 This file is generated automatically from [Conventional Commits](https://www.conventionalcommits.org/) — run `npm run changelog` to regenerate.
 
-## Unreleased
+## [v1.0.0](https://github.com/limboy/soundbox/releases/tag/v1.0.0) - 2026-04-22
 
 ### Features
 
+- implement auto-update functionality with UI indicator and notarization support ([168f58a](https://github.com/limboy/soundbox/commit/168f58aa8d3938ca3e31de061ba21963809f93e3))
 - enable numeric sorting for files and update audio list to display dynamic row indices ([9e6e0ac](https://github.com/limboy/soundbox/commit/9e6e0ac6f46ab20f96847034472901c9ed138961))
 - add search functionality to filter audio list by title, artist, or album ([eb7cd2a](https://github.com/limboy/soundbox/commit/eb7cd2a2b053f6717f88e2dd1f8c0983f2da356d))
 - add support for .ogg and .wav files and implement natural sorting by title in library collections ([fa582ac](https://github.com/limboy/soundbox/commit/fa582ac430c0b9515bce592082d913988e081f10))
@@ -62,6 +63,10 @@ This file is generated automatically from [Conventional Commits](https://www.con
 - remove tooltips from player header and adjust layout dimensions ([bb00c01](https://github.com/limboy/soundbox/commit/bb00c018091fed48ad59206ef540a04305aa2b5e))
 - fix layout overflow and improve resizable panel height consistency ([aa96ae0](https://github.com/limboy/soundbox/commit/aa96ae0b11b5eb6afc175df6f5fb5ca4a20dcee2))
 
+### Documentation
+
+- update project README and remove unused tooltip components from update indicator ([8a0a1c8](https://github.com/limboy/soundbox/commit/8a0a1c8fea94885cb08d600dc909a3183ca041e3))
+
 ### Styles
 
 - reduce header height from 11 to 10 in player route ([56f70c7](https://github.com/limboy/soundbox/commit/56f70c7a76b7cd886350c7ef4ea737d98030e3a6))
@@ -72,7 +77,12 @@ This file is generated automatically from [Conventional Commits](https://www.con
 
 - replace electron-builder.yml with inline config and enable notarization ([2c62235](https://github.com/limboy/soundbox/commit/2c6223579a448824d97cab9dc151316cbe157fb8))
 
+### CI
+
+- add automated release workflow with CHANGELOG generation support ([edecedf](https://github.com/limboy/soundbox/commit/edecedfec4900793f80719ad4bb3851835ead5d9))
+
 ### Chores
 
+- enable notarization for macOS builds in package.json ([a05f4a7](https://github.com/limboy/soundbox/commit/a05f4a7a6334be63ea571c31e4ce9fc479b1c930))
 - disable notarization and add debug and ms dependencies ([bd286ce](https://github.com/limboy/soundbox/commit/bd286ce3c08bb4a8f5d58478ed84de906809afba))
 - ignore and untrack tsbuildinfo files ([6f72cfe](https://github.com/limboy/soundbox/commit/6f72cfee04eda05d484401237bb75724f965aba9))
