@@ -1,11 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip'
 
 export function UpdateIndicator(): React.JSX.Element | null {
   const [updateVersion, setUpdateVersion] = useState<string | null>(null)

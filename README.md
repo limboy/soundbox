@@ -1,34 +1,87 @@
-# soundbox
+# SoundBox — A Smooth Audio Player for Your Local Library
 
-An Electron application with React and TypeScript
+SoundBox is a modern, minimalist audio player for macOS (and more). Built with a focus on simplicity and efficiency, it helps you organize and enjoy your local audio collection.
 
-## Recommended IDE Setup
+## 💻 Requirements
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+- **macOS 12.0 (Monterey)** or later
+- **Apple Silicon** (M1/M2/M3/M4 chips) recommended
 
-## Project Setup
+## ✨ Features
 
-### Install
+- **Collection Management**: Organize your audio files into custom collections.
+- **Drag & Drop Support**: Add files or entire folders instantly by dragging them into the interface.
+- **Smart Metadata**: Automatically extracts title, artist, and album info using `music-metadata`.
+- **Wide Format Support**: Play MP3, OGG, and WAV files with ease.
+- **Fast Search**: Quickly find any song with real-time library filtering.
+- **Live Sync**: Monitors your local folders for changes and keeps your library up to date.
+- **Modern Interface**: A clean, responsive design built with Tailwind CSS and Radix UI.
+
+## 🚀 Installation
+
+You can download the latest version from the [Releases](https://github.com/limboy/soundbox/releases/latest) page.
+
+## 🛠 Development
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (Latest LTS recommended)
+- [npm](https://www.npmjs.com/)
+- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) (Recommended)
+
+### Setup
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/limboy/soundbox.git
+   cd soundbox
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Running Locally
+
+Start the development server:
 
 ```bash
-$ npm install
+npm run dev
 ```
 
-### Development
+### Building for Production
+
+To pack the application:
 
 ```bash
-$ npm run dev
-```
-
-### Build
-
-```bash
-# For windows
-$ npm run build:win
-
 # For macOS
-$ npm run build:mac
+npm run build:mac
+
+# For Windows
+npm run build:win
 
 # For Linux
-$ npm run build:linux
+npm run build:linux
 ```
+
+The output will be available in the `dist` directory.
+
+## 🛠 Tech Stack
+
+- **Core**: [Electron](https://www.electronjs.org/)
+- **Frontend**: [React](https://reactjs.org/) + [Vite](https://vitejs.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Routing**: [TanStack Router](https://tanstack.com/router)
+- **Table**: [TanStack Table](https://tanstack.com/table)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
+- **Metadata**: [music-metadata](https://github.com/borewit/music-metadata)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+
+## 📄 License
+
+This project is licensed under the **MIT License**.
+
+---
+
+Made with ❤️ for music lovers.
