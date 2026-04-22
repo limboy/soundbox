@@ -3,6 +3,21 @@
 All notable changes to this project are documented here.
 This file is generated automatically from [Conventional Commits](https://www.conventionalcommits.org/) — run `npm run changelog` to regenerate.
 
+## [v1.0.2](https://github.com/limboy/soundbox/compare/v1.0.1...v1.0.2) - 2026-04-22
+
+### Bug Fixes
+
+- stop playback when creating, deleting, or switching library collections ([6bd0a42](https://github.com/limboy/soundbox/commit/6bd0a42e5f4f18770ebfdd8a31f8f22ecc08ef2e))
+- restore song list scrolling and pin header to viewport top ([357c667](https://github.com/limboy/soundbox/commit/357c667e1be67ce3c70c84de05db186d91925437))
+
+### Refactoring
+
+- remove unused shell import from ipc/fs.ts ([7c37b91](https://github.com/limboy/soundbox/commit/7c37b9182ea4cbc3146e46791930f28bca134588))
+
+### Documentation
+
+- update CHANGELOG for v1.0.1 ([8f46e04](https://github.com/limboy/soundbox/commit/8f46e047c1c5f5cb5dcb93c8482615bc4facc06d))
+
 ## [v1.0.1](https://github.com/limboy/soundbox/compare/v1.0.0...v1.0.1) - 2026-04-22
 
 ### Features
