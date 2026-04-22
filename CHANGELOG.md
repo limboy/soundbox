@@ -3,6 +3,30 @@
 All notable changes to this project are documented here.
 This file is generated automatically from [Conventional Commits](https://www.conventionalcommits.org/) — run `npm run changelog` to regenerate.
 
+## [v1.0.1](https://github.com/limboy/soundbox/compare/v1.0.0...v1.0.1) - 2026-04-22
+
+### Features
+
+- implement native context menus for collections to handle rename and delete actions via IPC ([177ec43](https://github.com/limboy/soundbox/commit/177ec434ab3bda793a540639c72fe1ea15d748f4))
+- add context menu support for audio items to play files or reveal them in Finder ([8eba853](https://github.com/limboy/soundbox/commit/8eba85344bdf56ba6d94c735903e7939616c209a))
+
+### Refactoring
+
+- restructure player layout and fix scroll area flex alignment issues ([5d1baaa](https://github.com/limboy/soundbox/commit/5d1baaa6ea54ca377fa842fccefdf9737fc523f5))
+
+### Documentation
+
+- update CHANGELOG for v1.0.0 ([1cdc319](https://github.com/limboy/soundbox/commit/1cdc3191deda9c01b9e7af50ba5deaf4593aa29f))
+
+### Styles
+
+- update sidebar icons and collection list UI styles for improved visual consistency ([ea921c0](https://github.com/limboy/soundbox/commit/ea921c0aac90f07b9b4d66f9f2660d1964886f78))
+
+### Other Changes
+
+- animate sidebar collapse/expand with smooth width transition ([889df08](https://github.com/limboy/soundbox/commit/889df0822a47084f2507395a7f178c32cd8dab8f))
+- update shuffle and loop transport controls with active indicator dots and refined styling ([b66b637](https://github.com/limboy/soundbox/commit/b66b6375e78c7c786073fa9f3be2fe52c79dcb4b))
+
 ## [v1.0.0](https://github.com/limboy/soundbox/releases/tag/v1.0.0) - 2026-04-22
 
 ### Features
