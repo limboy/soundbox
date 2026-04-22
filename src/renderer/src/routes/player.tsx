@@ -61,7 +61,7 @@ export function PlayerRoute(): React.JSX.Element {
     <div className="flex h-screen flex-col overflow-hidden">
       {/* Global Top Navigation Bar */}
       <header
-        className="app-drag flex h-11 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-3"
+        className="app-drag flex h-10 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-3"
       >
         {/* Left: macOS traffic light spacer + left sidebar toggler */}
         <div className="flex items-center gap-1 shrink-0" style={{ paddingLeft: 64 }}>
