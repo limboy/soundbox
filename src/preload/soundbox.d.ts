@@ -6,6 +6,8 @@ export type Collection = {
   id: string
   title: string
   items: string[]
+  watchedFolders?: string[]
+  excludedPaths?: string[]
 }
 
 export type AppState = {
@@ -25,6 +27,7 @@ export interface SoundboxApi {
   getState(): Promise<AppState>
   setState(patch: Partial<AppState>): Promise<AppState>
   onLibraryChanged(cb: (payload: LibraryChangedPayload) => void): () => void
+  onStateUpdated(cb: (state: AppState) => void): () => void
   getPathInfo(path: string): Promise<{ isDirectory: boolean; isFile: boolean; ext: string } | null>
   getPathForFile(file: File): string
 }

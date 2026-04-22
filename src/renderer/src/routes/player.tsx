@@ -53,6 +53,19 @@ export function PlayerRoute(): React.JSX.Element {
     })()
   }, [setCollections, selectCollection, selectAudio])
 
+  useEffect(() => {
+    return window.soundbox.onStateUpdated((state) => {
+      const prev = useLibrary.getState()
+      setCollections(state.collections)
+      if (state.selectedCollectionId !== prev.selectedCollectionId) {
+        useLibrary.setState({ selectedCollectionId: state.selectedCollectionId })
+      }
+      if (state.lastAudioPath !== prev.selectedAudio) {
+        selectAudio(state.lastAudioPath)
+      }
+    })
+  }, [setCollections, selectAudio])
+
   const toggleLeft = useCallback(() => {
     setLeftSidebarOpen(!leftSidebarOpen)
   }, [leftSidebarOpen, setLeftSidebarOpen])

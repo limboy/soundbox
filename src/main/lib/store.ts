@@ -1,6 +1,6 @@
 import { app } from 'electron'
-import { readFile, rename, writeFile } from 'node:fs/promises'
-import { join, resolve } from 'node:path'
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { dirname, join, resolve } from 'node:path'
 
 export type CollectionType = 'Music' | 'Audio Book'
 export type Collection = {
@@ -8,6 +8,8 @@ export type Collection = {
   title: string
   type: CollectionType
   items: string[] // Array of file paths
+  watchedFolders?: string[]
+  excludedPaths?: string[]
 }
 
 export type AppState = {
@@ -43,28 +45,50 @@ function updateAuthorizedPaths(state: AppState): void {
   }
 }
 
+async function ensureDir(path: string): Promise<void> {
+  await mkdir(dirname(path), { recursive: true })
+}
+
 export async function readState(): Promise<AppState> {
   if (cached) return cached
+  const path = storePath()
   try {
-    const raw = await readFile(storePath(), 'utf8')
+    const raw = await readFile(path, 'utf8')
     const parsed = JSON.parse(raw) as Partial<AppState>
     cached = { ...DEFAULT, ...parsed }
-  } catch {
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code
+    if (code !== 'ENOENT') {
+      console.error('Failed to read state file, it might be corrupted:', err)
+    }
     cached = { ...DEFAULT }
   }
   updateAuthorizedPaths(cached)
   return cached
 }
 
+let writeQueue = Promise.resolve()
+
 export async function writeState(patch: Partial<AppState>): Promise<AppState> {
   const current = await readState()
   const next = { ...current, ...patch }
   cached = next
   updateAuthorizedPaths(cached)
-  const path = storePath()
-  const tmp = `${path}.tmp`
-  await writeFile(tmp, JSON.stringify(next, null, 2), 'utf8')
-  await rename(tmp, path)
+
+  const promise = writeQueue.then(async () => {
+    const path = storePath()
+    const tmp = `${path}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`
+    try {
+      await ensureDir(path)
+      await writeFile(tmp, JSON.stringify(next, null, 2), 'utf8')
+      await rename(tmp, path)
+    } catch (err) {
+      console.error('Failed to write state:', err)
+    }
+  })
+
+  writeQueue = promise
+  await promise
   return next
 }
 

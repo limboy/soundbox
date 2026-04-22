@@ -43,7 +43,6 @@ export function AudioList(): React.JSX.Element {
   const selectedCollectionId = useLibrary((s) => s.selectedCollectionId)
   const selectedAudio = useLibrary((s) => s.selectedAudio)
   const selectAudio = useLibrary((s) => s.selectAudio)
-  const removeItemsFromSelectedCollection = useLibrary((s) => s.removeItemsFromSelectedCollection)
   const addItemsToSelectedCollection = useLibrary((s) => s.addItemsToSelectedCollection)
   const setPlaying = usePlayer((s) => s.setPlaying)
 
@@ -55,12 +54,13 @@ export function AudioList(): React.JSX.Element {
   const setBulkTrackInfo = useLibrary((s) => s.setBulkTrackInfo)
 
 
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'title', desc: false }])
   const [columnSizing, setColumnSizing] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
   const activeCollection = collections.find((c) => c.id === selectedCollectionId)
   const rows = useMemo(() => (activeCollection ? activeCollection.items : []), [activeCollection])
+
   useEffect(() => {
     let cancelled = false
 
@@ -72,21 +72,14 @@ export function AudioList(): React.JSX.Element {
       const bulk = await window.soundbox.getBulkMetadata(pathsToCheck).catch(() => ({}))
       if (cancelled) return
 
-      // Apply bulk updates at once to minimize re-renders
       setBulkTrackInfo(bulk)
-
-      const missingPaths: string[] = []
 
       for (const p of pathsToCheck) {
         if (cancelled) return
 
         const info = await window.soundbox.getPathInfo(p).catch(() => null)
-        if (!info) {
-          missingPaths.push(p)
-          continue
-        }
+        if (!info) continue
 
-        // If not in bulk (unexpected if already probed before), probe individually
         if (!(p in trackDurations) && !bulk[p]) {
           const d = await window.soundbox.probeDuration(p).catch(() => null)
           if (cancelled) return
@@ -98,10 +91,6 @@ export function AudioList(): React.JSX.Element {
           if (cancelled) return
           setTrackMeta(p, m || { artist: 'Unknown', album: 'Unknown', title: basename(p) })
         }
-      }
-
-      if (missingPaths.length > 0 && !cancelled) {
-        removeItemsFromSelectedCollection(missingPaths)
       }
     }
 
@@ -121,7 +110,6 @@ export function AudioList(): React.JSX.Element {
     }
   }, [
     rows,
-    removeItemsFromSelectedCollection,
     setBulkTrackInfo,
     setTrackDuration,
     setTrackMeta,
@@ -147,23 +135,6 @@ export function AudioList(): React.JSX.Element {
   const columns = useMemo<ColumnDef<AudioItem>[]>(() => {
     const cols: ColumnDef<AudioItem>[] = [
       {
-        accessorKey: 'index',
-        header: '#',
-        cell: (info) => {
-          const path = info.row.original.path
-          const active = path === selectedAudio
-          return active ? (
-            <Play className="h-3.5 w-3.5 text-primary" />
-          ) : (
-            <span className="text-muted-foreground tabular-nums">{info.getValue() as number}</span>
-          )
-        },
-        size: 50,
-        minSize: 40,
-        enableResizing: false,
-        enableHiding: false
-      },
-      {
         accessorKey: 'title',
         header: ({ column }) => (
           <button
@@ -180,6 +151,27 @@ export function AudioList(): React.JSX.Element {
             )}
           </button>
         ),
+        cell: (info) => {
+          const path = info.row.original.path
+          const active = path === selectedAudio
+          return (
+            <div className="flex items-center gap-2">
+              {active && <Play className="h-3.5 w-3.5 text-primary flex-shrink-0" />}
+              <span className={cn('truncate', active && 'text-primary font-medium')}>
+                {info.getValue() as string}
+              </span>
+            </div>
+          )
+        },
+        sortingFn: (rowA, rowB, columnId) => {
+          const a = rowA.getValue(columnId) as string
+          const b = rowB.getValue(columnId) as string
+          return a.localeCompare(b, undefined, { 
+            numeric: true, 
+            sensitivity: 'base',
+            usage: 'sort' 
+          })
+        },
         size: 250,
         minSize: 100,
         enableHiding: false
@@ -287,6 +279,7 @@ export function AudioList(): React.JSX.Element {
     if (files.length === 0) return
 
     const paths: string[] = []
+    const folderPaths: string[] = []
     for (const file of files) {
       const p = window.soundbox.getPathForFile(file)
       if (!p) continue
@@ -296,6 +289,7 @@ export function AudioList(): React.JSX.Element {
         const allowed = ['.mp3', '.m4a', '.m4b', '.flac']
         if (allowed.includes(info.ext)) paths.push(p)
       } else if (info.isDirectory) {
+        folderPaths.push(p)
         const tree = await window.soundbox.readTree(p)
         const flatten = (n: import('../../../../preload/soundbox').TreeNode): void => {
           if (n.kind === 'audio') paths.push(n.path)
@@ -305,6 +299,7 @@ export function AudioList(): React.JSX.Element {
       }
     }
     if (paths.length > 0) addItemsToSelectedCollection(paths)
+    if (folderPaths.length > 0) useLibrary.getState().addFoldersToSelectedCollection(folderPaths)
   }
 
   if (!activeCollection) {

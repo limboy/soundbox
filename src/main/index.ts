@@ -11,6 +11,7 @@ import { registerFsIpc } from './ipc/fs'
 import { registerDialogIpc } from './ipc/dialog'
 import { registerStoreIpc } from './ipc/store'
 import { flushCache } from './lib/metadata-cache'
+import { closeWatcher, setupWatcher } from './lib/watcher'
 
 registerLocalSchemePrivileged()
 
@@ -62,13 +63,13 @@ app.whenReady().then(async () => {
   registerLocalProtocolHandler()
   registerDialogIpc(getWindow)
   registerFsIpc()
-  registerStoreIpc(() => {
-    // No longer need to react to rootFolder changes
-  })
+  registerStoreIpc()
 
   await readState()
 
   createWindow()
+
+  await setupWatcher(getWindow)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
@@ -84,4 +85,5 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   flushCache()
+  void closeWatcher()
 })

@@ -19,6 +19,7 @@ type LibraryState = {
   selectCollection: (id: string | null) => void
   addItemsToSelectedCollection: (paths: string[]) => void
   removeItemsFromSelectedCollection: (paths: string[]) => void
+  addFoldersToSelectedCollection: (paths: string[]) => void
   selectAudio: (path: string | null) => void
   setLoading: (loading: boolean) => void
   setError: (err: string | null) => void
@@ -88,10 +89,12 @@ export const useLibrary = create<LibraryState>((set, get) => ({
   addItemsToSelectedCollection: (paths) => {
     const { collections, selectedCollectionId } = get()
     if (!selectedCollectionId) return
+    const pathSet = new Set(paths)
     const next = collections.map(c => {
       if (c.id === selectedCollectionId) {
-        const set = new Set([...c.items, ...paths])
-        return { ...c, items: Array.from(set) }
+        const items = Array.from(new Set([...c.items, ...paths]))
+        const excludedPaths = (c.excludedPaths || []).filter(p => !pathSet.has(p))
+        return { ...c, items, excludedPaths }
       }
       return c
     })
@@ -102,7 +105,7 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     const { collections, selectedCollectionId, selectedAudio } = get()
     if (!selectedCollectionId) return
     const pathSet = new Set(paths)
-    
+
     let nextSelectedAudio = selectedAudio
     if (selectedAudio && pathSet.has(selectedAudio)) {
       nextSelectedAudio = null
@@ -110,13 +113,28 @@ export const useLibrary = create<LibraryState>((set, get) => ({
 
     const next = collections.map(c => {
       if (c.id === selectedCollectionId) {
-        return { ...c, items: c.items.filter(p => !pathSet.has(p)) }
+        const items = c.items.filter(p => !pathSet.has(p))
+        const excludedPaths = Array.from(new Set([...(c.excludedPaths || []), ...paths]))
+        return { ...c, items, excludedPaths }
       }
       return c
     })
-    
+
     set({ collections: next, selectedAudio: nextSelectedAudio })
     void window.soundbox.setState({ collections: next, lastAudioPath: nextSelectedAudio })
+  },
+  addFoldersToSelectedCollection: (paths) => {
+    const { collections, selectedCollectionId } = get()
+    if (!selectedCollectionId) return
+    const next = collections.map(c => {
+      if (c.id === selectedCollectionId) {
+        const folders = new Set([...(c.watchedFolders || []), ...paths])
+        return { ...c, watchedFolders: Array.from(folders) }
+      }
+      return c
+    })
+    set({ collections: next })
+    void window.soundbox.setState({ collections: next })
   },
   selectAudio: (selectedAudio) => set({ selectedAudio }),
   setLoading: (loading) => set({ loading }),

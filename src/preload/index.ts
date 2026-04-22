@@ -32,6 +32,13 @@ const soundbox = {
       ipcRenderer.removeListener('soundbox:library-changed', listener)
     }
   },
+  onStateUpdated: (cb: (state: import('./soundbox').AppState) => void) => {
+    const listener = (_: IpcRendererEvent, state: import('./soundbox').AppState): void => cb(state)
+    ipcRenderer.on('soundbox:state-updated', listener)
+    return () => {
+      ipcRenderer.removeListener('soundbox:state-updated', listener)
+    }
+  },
   getPathInfo: (path: string) =>
     ipcRenderer.invoke('soundbox:getPathInfo', path) as Promise<{
       isDirectory: boolean
