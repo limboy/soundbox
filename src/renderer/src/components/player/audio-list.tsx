@@ -127,8 +127,8 @@ export function AudioList(): React.JSX.Element {
         path,
         index: index + 1,
         title: m?.title && m.title !== 'Unknown' ? m.title : basename(path),
-        artist: m?.artist || 'Unknown',
-        album: m?.album || 'Unknown',
+        artist: m?.artist && m.artist !== 'Unknown' ? m.artist : '-',
+        album: m?.album && m.album !== 'Unknown' ? m.album : '-',
         duration
       }
     })
