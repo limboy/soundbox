@@ -28,6 +28,7 @@ import { msToClock } from '@/lib/format-time'
 import { cn } from '@/lib/utils'
 import { useLibrary } from '@/store/library-store'
 import { usePlayer } from '@/store/player-store'
+import { useUI } from '@/store/ui-store'
 
 type AudioItem = {
   path: string
@@ -119,8 +120,10 @@ export function AudioList(): React.JSX.Element {
     setTrackMeta
   ])
 
+  const searchQuery = useUI((s) => s.searchQuery)
+
   const data = useMemo<AudioItem[]>(() => {
-    return rows.map((path, index) => {
+    const all = rows.map((path, index) => {
       const m = trackMeta[path]
       const duration = trackDurations[path] ?? null
       return {
@@ -132,7 +135,17 @@ export function AudioList(): React.JSX.Element {
         duration
       }
     })
-  }, [rows, trackMeta, trackDurations])
+
+    if (!searchQuery) return all
+
+    const q = searchQuery.toLowerCase()
+    return all.filter(
+      (item) =>
+        item.title.toLowerCase().includes(q) ||
+        item.artist.toLowerCase().includes(q) ||
+        item.album.toLowerCase().includes(q)
+    )
+  }, [rows, trackMeta, trackDurations, searchQuery])
 
   const columns = useMemo<ColumnDef<AudioItem>[]>(() => {
     const cols: ColumnDef<AudioItem>[] = [

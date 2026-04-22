@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { PanelLeft } from 'lucide-react'
+import { PanelLeft, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TwoPane } from '@/components/layout/two-pane'
@@ -19,6 +19,12 @@ export function PlayerRoute(): React.JSX.Element {
   const leftSidebarWidth = useUI((s) => s.leftSidebarWidth)
   const setLeftSidebarOpen = useUI((s) => s.setLeftSidebarOpen)
   const setLeftSidebarWidth = useUI((s) => s.setLeftSidebarWidth)
+  const isSearchOpen = useUI((s) => s.isSearchOpen)
+  const searchQuery = useUI((s) => s.searchQuery)
+  const setIsSearchOpen = useUI((s) => s.setIsSearchOpen)
+  const setSearchQuery = useUI((s) => s.setSearchQuery)
+
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const [isCompact, setIsCompact] = useState(window.innerWidth < 500)
 
@@ -69,6 +75,12 @@ export function PlayerRoute(): React.JSX.Element {
     setLeftSidebarOpen(!leftSidebarOpen)
   }, [leftSidebarOpen, setLeftSidebarOpen])
 
+  useEffect(() => {
+    if (isSearchOpen) {
+      searchInputRef.current?.focus()
+    }
+  }, [isSearchOpen])
+
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       {/* Global Top Navigation Bar */}
@@ -87,6 +99,44 @@ export function PlayerRoute(): React.JSX.Element {
               <PanelLeft
                 className={`size-4 transition-opacity ${leftSidebarOpen ? 'opacity-100' : 'opacity-50'}`}
               />
+            </Button>
+          )}
+        </div>
+
+        {/* Right: Search */}
+        <div className="flex items-center gap-2 app-no-drag">
+          {isSearchOpen ? (
+            <div className="flex items-center bg-muted/50 rounded-md px-2 py-1 h-7 border border-border/50 focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+              <Search className="size-3.5 text-muted-foreground mr-1.5" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search songs..."
+                className="bg-transparent border-none outline-none text-xs w-32 md:w-48 placeholder:text-muted-foreground/50"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setIsSearchOpen(false)
+                  }
+                }}
+              />
+              <button
+                className="hover:text-foreground text-muted-foreground transition-colors ml-1"
+                onClick={() => setIsSearchOpen(false)}
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+          ) : (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7"
+              onClick={() => setIsSearchOpen(true)}
+              aria-label="Search"
+            >
+              <Search className="size-4" />
             </Button>
           )}
         </div>
