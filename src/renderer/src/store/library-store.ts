@@ -10,7 +10,9 @@ type LibraryState = {
   trackMeta: Record<string, { artist: string; album: string; title: string } | null>
   trackDurations: Record<string, number | null>
   setCollections: (collections: Collection[]) => void
-  addCollection: (title: string) => void
+  addCollection: (title: string) => string
+  updateCollectionTitle: (id: string, title: string) => void
+  deleteCollection: (id: string) => void
   setTrackMeta: (path: string, meta: { artist: string; album: string; title: string } | null) => void
   setTrackDuration: (path: string, duration: number | null) => void
   setBulkTrackInfo: (items: Record<string, { meta?: { artist: string; album: string; title: string }; duration?: number | null }>) => void
@@ -35,8 +37,24 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     const id = Date.now().toString()
     const newCollection: Collection = { id, title, items: [] }
     const next = [...get().collections, newCollection]
-    set({ collections: next, selectedCollectionId: id })
-    void window.soundbox.setState({ collections: next, selectedCollectionId: id })
+    set({ collections: next, selectedCollectionId: id, selectedAudio: null })
+    void window.soundbox.setState({ collections: next, selectedCollectionId: id, lastAudioPath: null })
+    return id
+  },
+  updateCollectionTitle: (id, title) => {
+    const next = get().collections.map((c) => (c.id === id ? { ...c, title } : c))
+    set({ collections: next })
+    void window.soundbox.setState({ collections: next })
+  },
+  deleteCollection: (id) => {
+    const { collections, selectedCollectionId } = get()
+    const next = collections.filter((c) => c.id !== id)
+    let nextSelectedId = selectedCollectionId
+    if (selectedCollectionId === id) {
+      nextSelectedId = next.length > 0 ? next[0].id : null
+    }
+    set({ collections: next, selectedCollectionId: nextSelectedId })
+    void window.soundbox.setState({ collections: next, selectedCollectionId: nextSelectedId })
   },
   setTrackMeta: (path, meta) => set((s) => ({ trackMeta: { ...s.trackMeta, [path]: meta } })),
   setTrackDuration: (path, duration) => set((s) => ({ trackDurations: { ...s.trackDurations, [path]: duration } })),
