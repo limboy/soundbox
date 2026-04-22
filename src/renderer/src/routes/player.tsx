@@ -159,7 +159,7 @@ function PlayerCenter(): React.JSX.Element {
       const info = await window.soundbox.getPathInfo(p)
       if (!info) continue
       if (info.isFile) {
-        const allowed = ['.mp3', '.m4a', '.m4b', '.flac']
+        const allowed = ['.mp3', '.m4a', '.m4b', '.flac', '.ogg', '.wav']
         if (allowed.includes(info.ext)) paths.push(p)
       } else if (info.isDirectory) {
         folderPaths.push(p)

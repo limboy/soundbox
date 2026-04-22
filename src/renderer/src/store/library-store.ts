@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { basename } from '@/lib/audio-extensions'
 import type { Collection } from '../../../preload/soundbox'
 
 type LibraryState = {
@@ -77,11 +78,25 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     return { trackMeta: nextMeta, trackDurations: nextDurations }
   }),
   selectCollection: (id) => {
-    const { collections, selectedCollectionId } = get()
+    const { collections, selectedCollectionId, trackMeta } = get()
     if (selectedCollectionId === id) return
 
     const collection = collections.find((c) => c.id === id)
-    const firstAudio = collection?.items?.[0] || null
+    let firstAudio = null
+    if (collection && collection.items.length > 0) {
+      const sorted = [...collection.items].sort((a, b) => {
+        const metaA = trackMeta[a]
+        const metaB = trackMeta[b]
+        const titleA = metaA?.title && metaA.title !== 'Unknown' ? metaA.title : basename(a)
+        const titleB = metaB?.title && metaB.title !== 'Unknown' ? metaB.title : basename(b)
+        return titleA.localeCompare(titleB, undefined, {
+          numeric: true,
+          sensitivity: 'base',
+          usage: 'sort'
+        })
+      })
+      firstAudio = sorted[0]
+    }
 
     set({ selectedCollectionId: id, selectedAudio: firstAudio })
     void window.soundbox.setState({ selectedCollectionId: id, lastAudioPath: firstAudio })

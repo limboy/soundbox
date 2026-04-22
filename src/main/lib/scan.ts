@@ -2,7 +2,7 @@ import type { Dirent } from 'node:fs'
 import { readdir } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
 
-export const AUDIO_EXTS = new Set(['.mp3', '.m4a', '.m4b', '.flac'])
+export const AUDIO_EXTS = new Set(['.mp3', '.m4a', '.m4b', '.flac', '.ogg', '.wav'])
 
 export type TreeNode =
   | { kind: 'dir'; name: string; path: string; children: TreeNode[] }
