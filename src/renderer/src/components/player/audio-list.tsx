@@ -137,6 +137,25 @@ export function AudioList(): React.JSX.Element {
   const columns = useMemo<ColumnDef<AudioItem>[]>(() => {
     const cols: ColumnDef<AudioItem>[] = [
       {
+        id: 'index',
+        header: () => <div className="pl-2">#</div>,
+        cell: (info) => {
+          const path = info.row.original.path
+          const active = path === selectedAudio
+          return (
+            <div className="pl-2 text-muted-foreground/60 tabular-nums">
+              {active ? (
+                <Play className="h-3.5 w-3.5 text-primary shrink-0 fill-primary" />
+              ) : (
+                info.row.original.index
+              )}
+            </div>
+          )
+        },
+        size: 50,
+        enableHiding: false
+      },
+      {
         accessorKey: 'title',
         header: ({ column }) => (
           <button
@@ -157,12 +176,9 @@ export function AudioList(): React.JSX.Element {
           const path = info.row.original.path
           const active = path === selectedAudio
           return (
-            <div className="flex items-center gap-2">
-              {active && <Play className="h-3.5 w-3.5 text-primary shrink-0" />}
-              <span className={cn('truncate', active && 'text-primary font-medium')}>
-                {info.getValue() as string}
-              </span>
-            </div>
+            <span className={cn('truncate block', active && 'text-primary font-medium')}>
+              {info.getValue() as string}
+            </span>
           )
         },
         sortingFn: (rowA, rowB, columnId) => {
