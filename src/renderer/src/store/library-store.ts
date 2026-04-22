@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { basename } from '@/lib/audio-extensions'
 import type { Collection } from '../../../preload/soundbox'
+import { usePlayer } from './player-store'
 
 type LibraryState = {
   collections: Collection[]
@@ -40,6 +41,7 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     const newCollection: Collection = { id, title, items: [] }
     const next = [...get().collections, newCollection]
     set({ collections: next, selectedCollectionId: id, selectedAudio: null })
+    usePlayer.getState().setPlaying(false)
     void window.soundbox.setState({ collections: next, selectedCollectionId: id, lastAudioPath: null })
     return id
   },
@@ -57,6 +59,7 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     if (selectedCollectionId === id) {
       nextSelectedId = next.length > 0 ? next[0].id : null
       nextSelectedAudio = next.length > 0 ? next[0].items?.[0] || null : null
+      usePlayer.getState().setPlaying(false)
     }
 
     set({ collections: next, selectedCollectionId: nextSelectedId, selectedAudio: nextSelectedAudio })
@@ -99,6 +102,7 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     }
 
     set({ selectedCollectionId: id, selectedAudio: firstAudio })
+    usePlayer.getState().setPlaying(false)
     void window.soundbox.setState({ selectedCollectionId: id, lastAudioPath: firstAudio })
   },
   addItemsToSelectedCollection: (paths) => {
