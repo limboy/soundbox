@@ -23,7 +23,7 @@ const DEFAULT: AppState = {
 }
 
 let cached: AppState | null = null
-let authorizedPaths = new Set<string>()
+const authorizedPaths = new Set<string>()
 
 function storePath(): string {
   return join(app.getPath('userData'), 'soundbox.json')

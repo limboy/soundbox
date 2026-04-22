@@ -1,5 +1,5 @@
 import { Moon, Sun } from 'lucide-react'
-import { useTheme } from './theme-provider'
+import { useTheme } from '../hooks/use-theme'
 import { cn } from '@/lib/utils'
 
 export function ThemeSwitcher() {
@@ -28,7 +28,7 @@ export function ThemeSwitcher() {
       <div
         className={cn(
           "relative flex h-5 w-5 items-center justify-center rounded-full border bg-background transition-all duration-300 ease-in-out",
-          theme === 'dark' ? "translate-x-[22px]" : "translate-x-0"
+          theme === 'dark' ? "translate-x-5.5" : "translate-x-0"
         )}
       >
         {theme === 'light' ? (

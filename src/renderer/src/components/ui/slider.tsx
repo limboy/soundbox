@@ -1,7 +1,7 @@
-import * as React from "react"
-import { Slider as SliderPrimitive } from "radix-ui"
+import * as React from 'react'
+import { Slider as SliderPrimitive } from 'radix-ui'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 function Slider({
   className,
@@ -11,14 +11,9 @@ function Slider({
   max = 100,
   hideThumb = false,
   ...props
-}: React.ComponentProps<typeof SliderPrimitive.Root> & { hideThumb?: boolean }) {
+}: React.ComponentProps<typeof SliderPrimitive.Root> & { hideThumb?: boolean }): React.JSX.Element {
   const _values = React.useMemo(
-    () =>
-      Array.isArray(value)
-        ? value
-        : Array.isArray(defaultValue)
-          ? defaultValue
-          : [min, max],
+    () => (Array.isArray(value) ? value : Array.isArray(defaultValue) ? defaultValue : [min, max]),
     [value, defaultValue, min, max]
   )
 
@@ -30,7 +25,7 @@ function Slider({
       min={min}
       max={max}
       className={cn(
-        "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
+        'relative flex w-full touch-none items-center select-none data-disabled:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col',
         className
       )}
       {...props}

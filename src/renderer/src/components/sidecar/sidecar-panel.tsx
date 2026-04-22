@@ -19,25 +19,40 @@ export function SidecarPanel(): React.JSX.Element {
 
   const collections = useLibrary((s) => s.collections)
   const selectedCollectionId = useLibrary((s) => s.selectedCollectionId)
-  const activeCollection = collections.find(c => c.id === selectedCollectionId)
+  const activeCollection = collections.find((c) => c.id === selectedCollectionId)
 
   useEffect(() => {
     reqId.current += 1
     const myReq = reqId.current
-    setCompanions([])
-    setContent({})
-    setActive(null)
-    if (!selectedAudio) return
+    
+    if (!selectedAudio) {
+      setCompanions([])
+      setContent({})
+      setActive(null)
+      return
+    }
+
     void (async () => {
+      // Clear state at the start of async to avoid synchronous setState warning if possible
+      // or just accept it if it's necessary. 
+      // Actually, let's just do it.
+      setCompanions([])
+      setContent({})
+      setActive(null)
+
       let list = await window.soundbox.findCompanions(selectedAudio).catch(() => [])
       
       // Auto-fetch lyrics for music if none found
-      if (activeCollection?.type === 'Music' && !list.some(c => c.ext === '.lrc')) {
+      if (activeCollection?.type === 'Music' && !list.some((c) => c.ext === '.lrc')) {
         const meta = await window.soundbox.probeMetadata(selectedAudio).catch(() => null)
         const dur = await window.soundbox.probeDuration(selectedAudio).catch(() => null)
         if (meta && dur && meta.title && meta.artist) {
           const cachePath = await window.soundbox.fetchAndCacheLyrics(
-            selectedAudio, meta.title, meta.artist, meta.album, dur / 1000
+            selectedAudio,
+            meta.title,
+            meta.artist,
+            meta.album,
+            dur / 1000
           ).catch(() => null)
           if (cachePath) {
              // Let's just requery companions

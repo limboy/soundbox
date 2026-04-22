@@ -1,6 +1,5 @@
 import { FileAudio, Play, ChevronsUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { useEffect, useState, useMemo } from 'react'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Table,
   TableBody,
@@ -53,7 +52,7 @@ export function AudioList(): React.JSX.Element {
   const [columnSizing, setColumnSizing] = useState({})
 
   const activeCollection = collections.find((c) => c.id === selectedCollectionId)
-  const rows = activeCollection ? activeCollection.items : []
+  const rows = useMemo(() => (activeCollection ? activeCollection.items : []), [activeCollection])
   const isMusic = activeCollection?.type === 'Music'
 
   useEffect(() => {
@@ -114,7 +113,16 @@ export function AudioList(): React.JSX.Element {
       cancelled = true
       window.removeEventListener('focus', handleFocus)
     }
-  }, [rows, isMusic])
+  }, [
+    rows,
+    isMusic,
+    removeItemsFromSelectedCollection,
+    setBulkTrackInfo,
+    setTrackDuration,
+    setTrackMeta,
+    trackDurations,
+    trackMeta
+  ])
 
   const data = useMemo<AudioItem[]>(() => {
     return rows.map((path, index) => {
@@ -286,9 +294,9 @@ export function AudioList(): React.JSX.Element {
         if (allowed.includes(info.ext)) paths.push(p)
       } else if (info.isDirectory) {
         const tree = await window.soundbox.readTree(p)
-        const flatten = (n: any) => {
+        const flatten = (n: import('../../../../preload/soundbox').TreeNode): void => {
           if (n.kind === 'audio') paths.push(n.path)
-          if (n.children) n.children.forEach(flatten)
+          if (n.kind === 'dir') n.children.forEach(flatten)
         }
         flatten(tree)
       }
@@ -334,7 +342,7 @@ export function AudioList(): React.JSX.Element {
       onDrop={handleDrop}
     >
       <Table className="min-w-full table-fixed border-collapse">
-        <TableHeader className="sticky top-[158px] z-20 bg-background">
+        <TableHeader className="sticky top-39.5 z-20 bg-background">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -358,7 +366,9 @@ export function AudioList(): React.JSX.Element {
                       <div
                         className={cn(
                           'absolute top-2 bottom-2 right-[5.5px] w-px bg-border transition-colors',
-                          header.column.getIsResizing() ? 'bg-primary w-0.5' : 'group-hover/resizer:bg-primary/50'
+                          header.column.getIsResizing()
+                            ? 'bg-primary w-0.5'
+                            : 'group-hover/resizer:bg-primary/50'
                         )}
                       />
                     </div>

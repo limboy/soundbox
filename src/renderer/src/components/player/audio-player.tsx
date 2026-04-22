@@ -13,7 +13,7 @@ export function AudioPlayer(): React.JSX.Element {
   const selectedCollectionId = useLibrary((s) => s.selectedCollectionId)
   const selectAudio = useLibrary((s) => s.selectAudio)
 
-  const activeCollection = collections.find(c => c.id === selectedCollectionId)
+  const activeCollection = collections.find((c) => c.id === selectedCollectionId)
 
   const isPlaying = usePlayer((s) => s.isPlaying)
   const setPlaying = usePlayer((s) => s.setPlaying)

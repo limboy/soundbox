@@ -43,13 +43,13 @@ async function walk(node: Extract<TreeNode, { kind: 'dir' }>, depth: number): Pr
   for (const entry of entries) {
     if (IGNORE.has(entry.name)) continue
     if (entry.name.startsWith('.')) continue
-    const fullPath = join(node.path, entry.name)
+    const fullPath: string = join(node.path, entry.name)
     if (entry.isDirectory()) {
       const child: TreeNode = { kind: 'dir', name: entry.name, path: fullPath, children: [] }
       await walk(child, depth + 1)
       if (child.children.length > 0) node.children.push(child)
     } else if (entry.isFile()) {
-      const ext = extname(entry.name).toLowerCase()
+      const ext: string = extname(entry.name).toLowerCase()
       if (AUDIO_EXTS.has(ext)) {
         node.children.push({ kind: 'audio', name: entry.name, path: fullPath })
       }
@@ -74,8 +74,8 @@ import { access } from 'node:fs/promises'
 export async function findCompanions(
   audioPath: string
 ): Promise<Array<{ ext: string; path: string }>> {
-  const dir = audioPath.replace(/[^/\\]+$/, '')
-  const base = basename(audioPath, extname(audioPath))
+  const dir: string = audioPath.replace(/[^/\\]+$/, '')
+  const base: string = basename(audioPath, extname(audioPath))
   let entries: Dirent[] = []
   try {
     entries = (await readdir(dir, { withFileTypes: true })) as Dirent[]
@@ -85,24 +85,26 @@ export async function findCompanions(
   const out: Array<{ ext: string; path: string }> = []
   for (const entry of entries) {
     if (!entry.isFile()) continue
-    const ext = extname(entry.name).toLowerCase()
+    const ext: string = extname(entry.name).toLowerCase()
     if (!TEXT_EXTS.has(ext)) continue
-    const entryBase = basename(entry.name, extname(entry.name))
+    const entryBase: string = basename(entry.name, extname(entry.name))
     if (entryBase !== base) continue
     out.push({ ext, path: join(dir, entry.name) })
   }
 
   // Also check lrclib cache
   try {
-    const lyricsCacheDir = join(app.getPath('userData'), 'lyricsCache')
-    const hash = crypto.createHash('md5').update(audioPath).digest('hex')
-    const cachePath = join(lyricsCacheDir, `${hash}.lrc`)
+    const lyricsCacheDir: string = join(app.getPath('userData'), 'lyricsCache')
+    const hash: string = crypto.createHash('md5').update(audioPath).digest('hex')
+    const cachePath: string = join(lyricsCacheDir, `${hash}.lrc`)
     await access(cachePath)
     // If it exists, add it to companions if not already present
-    if (!out.find(c => c.ext === '.lrc')) {
+    if (!out.find((c) => c.ext === '.lrc')) {
       out.push({ ext: '.lrc', path: cachePath })
     }
-  } catch {}
+  } catch {
+    // Ignore error
+  }
 
   out.sort((a, b) => extOrder(a.ext) - extOrder(b.ext))
   return out

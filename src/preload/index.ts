@@ -22,7 +22,7 @@ const soundbox = {
 
     ipcRenderer.invoke('soundbox:fetchAndCacheLyrics', path, trackName, artistName, albumName, duration) as Promise<string | null>,
   getState: () => ipcRenderer.invoke('soundbox:getState'),
-  setState: (patch: any) =>
+  setState: (patch: Partial<import('./soundbox').AppState>) =>
     ipcRenderer.invoke('soundbox:setState', patch),
   onLibraryChanged: (cb: (payload: { kind: 'tree' | 'text'; path: string }) => void) => {
     const listener = (_: IpcRendererEvent, payload: { kind: 'tree' | 'text'; path: string }): void =>

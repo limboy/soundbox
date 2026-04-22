@@ -34,11 +34,13 @@ export function registerFsIpc(): void {
     try {
       const meta = await parseFile(path, { duration: true, skipCovers: true })
       const ms =
-        typeof meta.format.duration === 'number'
-          ? Math.round(meta.format.duration * 1000)
-          : null
-      
-      const artist = meta.common.artist || meta.common.albumartist || (meta.common.artists && meta.common.artists[0]) || 'Unknown'
+        typeof meta.format.duration === 'number' ? Math.round(meta.format.duration * 1000) : null
+
+      const artist =
+        meta.common.artist ||
+        meta.common.albumartist ||
+        (meta.common.artists && meta.common.artists[0]) ||
+        'Unknown'
       const album = meta.common.album || 'Unknown'
       const title = meta.common.title || 'Unknown'
 
@@ -68,7 +70,10 @@ export function registerFsIpc(): void {
   })
 
   ipcMain.handle('soundbox:getBulkMetadata', async (_e, paths: string[]) => {
-    const result: Record<string, any> = {}
+    const result: Record<
+      string,
+      { meta: { artist: string; album: string; title: string }; duration: number | null }
+    > = {}
     for (const path of paths) {
       const cached = await getCachedMetadata(path)
       if (cached) {
@@ -99,12 +104,16 @@ export function registerFsIpc(): void {
     try {
       const meta = await parseFile(path, { duration: true, skipCovers: true })
       
-      const artist = (meta.common.artist || meta.common.albumartist || (meta.common.artists && meta.common.artists[0]) || 'Unknown').trim()
+      const artist = (
+        meta.common.artist ||
+        meta.common.albumartist ||
+        (meta.common.artists && meta.common.artists[0]) ||
+        'Unknown'
+      ).trim()
       const album = (meta.common.album || 'Unknown').trim()
       const title = (meta.common.title || 'Unknown').trim()
-      const ms = typeof meta.format.duration === 'number'
-        ? Math.round(meta.format.duration * 1000)
-        : null
+      const ms =
+        typeof meta.format.duration === 'number' ? Math.round(meta.format.duration * 1000) : null
       
       await setCachedMetadata(path, {
         duration: ms,
@@ -136,7 +145,11 @@ export function registerFsIpc(): void {
       if (!data || !data.syncedLyrics) return null
       
       const lyricsCacheDir = join(app.getPath('userData'), 'lyricsCache')
-      try { await mkdir(lyricsCacheDir, { recursive: true }) } catch {}
+      try {
+        await mkdir(lyricsCacheDir, { recursive: true })
+      } catch {
+        /* ignore */
+      }
 
       const hash = crypto.createHash('md5').update(path).digest('hex')
       const cachePath = join(lyricsCacheDir, `${hash}.lrc`)

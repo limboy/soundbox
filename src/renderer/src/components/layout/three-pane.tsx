@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react'
+import { useEffect, useRef } from 'react'
 
 const LEFT_MIN = 200
 const LEFT_MAX = 300
@@ -15,17 +15,7 @@ export function ThreePane({
   rightWidth,
   onLeftWidthChange,
   onRightWidthChange,
-}: {
-  left: ReactNode
-  center: ReactNode
-  right: ReactNode
-  leftOpen: boolean
-  rightOpen: boolean
-  leftWidth: number
-  rightWidth: number
-  onLeftWidthChange: (w: number) => void
-  onRightWidthChange: (w: number) => void
-}) {
+}): React.JSX.Element {
   return (
     <div className="flex-1 min-h-0 flex overflow-hidden bg-background text-foreground relative">
       {leftOpen && (
@@ -67,7 +57,7 @@ export function ThreePane({
   )
 }
 
-function clamp(n: number, min: number, max: number) {
+function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n))
 }
 
@@ -83,13 +73,16 @@ function Resizer({
   min: number
   max: number
   onResize: (w: number) => void
-}) {
+}): React.JSX.Element {
   const startX = useRef<number | null>(null)
   const startSize = useRef(0)
   const onResizeRef = useRef(onResize)
-  onResizeRef.current = onResize
 
-  const stop = (e: React.PointerEvent<HTMLDivElement>) => {
+  useEffect(() => {
+    onResizeRef.current = onResize
+  }, [onResize])
+
+  const stop = (e: React.PointerEvent<HTMLDivElement>): void => {
     if (startX.current == null) return
     startX.current = null
     if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
@@ -99,7 +92,7 @@ function Resizer({
     document.body.style.userSelect = ''
   }
 
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
     if (e.button !== 0) return
     e.preventDefault()
     startX.current = e.clientX
@@ -109,7 +102,7 @@ function Resizer({
     document.body.style.userSelect = 'none'
   }
 
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>): void => {
     if (startX.current == null) return
     const dx = e.clientX - startX.current
     const delta = side === 'left' ? dx : -dx

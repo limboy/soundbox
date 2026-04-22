@@ -6,18 +6,13 @@ import { useLibrary } from '@/store/library-store'
 import type { CollectionType } from '../../../../preload/soundbox'
 
 export function FileTree(): React.JSX.Element {
-  const {
-    collections,
-    selectedCollectionId,
-    selectCollection,
-    addCollection
-  } = useLibrary()
+  const { collections, selectedCollectionId, selectCollection, addCollection } = useLibrary()
 
   const [showCreate, setShowCreate] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newType, setNewType] = useState<CollectionType>('Music')
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = (e: React.FormEvent): void => {
     e.preventDefault()
     if (!newTitle.trim()) return
     addCollection(newTitle, newType)
@@ -65,8 +60,18 @@ export function FileTree(): React.JSX.Element {
               <option value="Audio Book">Audio Book</option>
             </select>
             <div className="flex justify-end gap-2 mt-1">
-              <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setShowCreate(false)}>Cancel</Button>
-              <Button type="submit" size="sm" className="h-6 px-2 text-xs">Create</Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs"
+                onClick={() => setShowCreate(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="h-6 px-2 text-xs">
+                Create
+              </Button>
             </div>
           </form>
         </div>
@@ -79,7 +84,7 @@ export function FileTree(): React.JSX.Element {
           </div>
         ) : (
           <div className="flex flex-col gap-0.5">
-            {collections.map(c => (
+            {collections.map((c) => (
               <button
                 key={c.id}
                 onClick={() => selectCollection(c.id)}

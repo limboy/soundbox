@@ -43,7 +43,7 @@ export function TransportControls({
   const [hoverMs, setHoverMs] = useState<number | null>(null)
   const [hoverLeft, setHoverLeft] = useState(0)
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>): void => {
     if (!selectedAudio || durationMs === 0) return
     const rect = e.currentTarget.getBoundingClientRect()
     const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
@@ -51,7 +51,7 @@ export function TransportControls({
     setHoverLeft(e.clientX - rect.left)
   }
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = (): void => {
     setHoverMs(null)
   }
 
@@ -67,9 +67,9 @@ export function TransportControls({
     }
   }
 
-  const toggleShuffle = () => setShuffle(!shuffle)
+  const toggleShuffle = (): void => setShuffle(!shuffle)
 
-  const toggleLoop = () => {
+  const toggleLoop = (): void => {
     if (loopMode === 'off') setLoopMode('all')
     else if (loopMode === 'all') setLoopMode('one')
     else setLoopMode('off')
@@ -80,7 +80,11 @@ export function TransportControls({
       {/* Part 1: Song Title */}
       <div className="flex w-full max-w-xl flex-col items-center gap-1 px-4">
         <h2 className="line-clamp-1 text-center text-lg font-semibold tracking-tight text-foreground transition-all">
-          {selectedAudio ? (m?.title && m.title !== 'Unknown' ? m.title : basename(selectedAudio)) : 'Ready to play'}
+          {selectedAudio
+            ? m?.title && m.title !== 'Unknown'
+              ? m.title
+              : basename(selectedAudio)
+            : 'Ready to play'}
         </h2>
         {m?.artist && m.artist !== 'Unknown' && (
           <p className="line-clamp-1 text-center text-sm text-muted-foreground/80">
@@ -131,13 +135,13 @@ export function TransportControls({
           size="icon"
           variant="ghost"
           className={cn(
-            "h-9 w-9 transition-colors",
-            shuffle ? "text-primary hover:text-primary/80" : "hover:text-foreground"
+            'h-9 w-9 transition-colors',
+            shuffle ? 'text-primary hover:text-primary/80' : 'hover:text-foreground'
           )}
           onClick={toggleShuffle}
           title="Shuffle"
         >
-          <Shuffle className={cn("h-[18px] w-[18px]", shuffle && "fill-primary/20")} />
+          <Shuffle className={cn('h-4.5 w-4.5', shuffle && 'fill-primary/20')} />
         </Button>
 
         <Button
@@ -180,22 +184,19 @@ export function TransportControls({
           size="icon"
           variant="ghost"
           className={cn(
-            "h-9 w-9 transition-colors",
-            loopMode !== 'off' ? "text-primary hover:text-primary/80" : "hover:text-foreground"
+            'h-9 w-9 transition-colors',
+            loopMode !== 'off' ? 'text-primary hover:text-primary/80' : 'hover:text-foreground'
           )}
           onClick={toggleLoop}
           title={loopMode === 'one' ? 'Repeat One' : loopMode === 'all' ? 'Repeat All' : 'Repeat Off'}
         >
           {loopMode === 'one' ? (
-            <Repeat1 className="h-[18px] w-[18px]" />
+            <Repeat1 className="h-4.5 w-4.5" />
           ) : (
-            <Repeat className={cn("h-[18px] w-[18px]", loopMode === 'all' && "fill-primary/20")} />
+            <Repeat className={cn('h-4.5 w-4.5', loopMode === 'all' && 'fill-primary/20')} />
           )}
         </Button>
       </div>
     </div>
   )
-
 }
-
-

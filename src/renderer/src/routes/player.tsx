@@ -31,7 +31,7 @@ export function PlayerRoute(): React.JSX.Element {
   const [isCompact, setIsCompact] = useState(window.innerWidth < 500)
 
   useEffect(() => {
-    const handleResize = () => {
+    const handleResize = (): void => {
       const compact = window.innerWidth < 500
       setIsCompact(compact)
 
