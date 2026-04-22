@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Collection, CollectionType } from '../../../preload/soundbox'
+import type { Collection } from '../../../preload/soundbox'
 
 type LibraryState = {
   collections: Collection[]
@@ -10,7 +10,7 @@ type LibraryState = {
   trackMeta: Record<string, { artist: string; album: string; title: string } | null>
   trackDurations: Record<string, number | null>
   setCollections: (collections: Collection[]) => void
-  addCollection: (title: string, type: CollectionType) => void
+  addCollection: (title: string) => void
   setTrackMeta: (path: string, meta: { artist: string; album: string; title: string } | null) => void
   setTrackDuration: (path: string, duration: number | null) => void
   setBulkTrackInfo: (items: Record<string, { meta?: { artist: string; album: string; title: string }; duration?: number | null }>) => void
@@ -31,9 +31,9 @@ export const useLibrary = create<LibraryState>((set, get) => ({
   trackMeta: {},
   trackDurations: {},
   setCollections: (collections) => set({ collections }),
-  addCollection: (title, type) => {
+  addCollection: (title) => {
     const id = Date.now().toString()
-    const newCollection: Collection = { id, title, type, items: [] }
+    const newCollection: Collection = { id, title, items: [] }
     const next = [...get().collections, newCollection]
     set({ collections: next, selectedCollectionId: id })
     void window.soundbox.setState({ collections: next, selectedCollectionId: id })

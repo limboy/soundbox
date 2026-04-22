@@ -61,8 +61,6 @@ export function AudioList(): React.JSX.Element {
 
   const activeCollection = collections.find((c) => c.id === selectedCollectionId)
   const rows = useMemo(() => (activeCollection ? activeCollection.items : []), [activeCollection])
-  const isMusic = activeCollection?.type === 'Music'
-
   useEffect(() => {
     let cancelled = false
 
@@ -95,7 +93,7 @@ export function AudioList(): React.JSX.Element {
           setTrackDuration(p, d)
         }
 
-        if (isMusic && !(p in trackMeta) && !bulk[p]) {
+        if (!(p in trackMeta) && !bulk[p]) {
           const m = await window.soundbox.probeMetadata(p).catch(() => null)
           if (cancelled) return
           setTrackMeta(p, m || { artist: 'Unknown', album: 'Unknown', title: basename(p) })
@@ -123,7 +121,6 @@ export function AudioList(): React.JSX.Element {
     }
   }, [
     rows,
-    isMusic,
     removeItemsFromSelectedCollection,
     setBulkTrackInfo,
     setTrackDuration,
@@ -186,63 +183,15 @@ export function AudioList(): React.JSX.Element {
         size: 250,
         minSize: 100,
         enableHiding: false
-      }
-    ]
-
-    if (isMusic) {
-      cols.push(
-        {
-          accessorKey: 'artist',
-          header: ({ column }) => (
-            <button
-              className="flex items-center gap-1 hover:text-foreground transition-colors w-full"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-              Artist
-              {column.getIsSorted() === 'asc' ? (
-                <ArrowUp className="h-3.5 w-3.5" />
-              ) : column.getIsSorted() === 'desc' ? (
-                <ArrowDown className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
-              )}
-            </button>
-          ),
-          size: 150,
-          minSize: 80
-        },
-        {
-          accessorKey: 'album',
-          header: ({ column }) => (
-            <button
-              className="flex items-center gap-1 hover:text-foreground transition-colors w-full"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-              Album
-              {column.getIsSorted() === 'asc' ? (
-                <ArrowUp className="h-3.5 w-3.5" />
-              ) : column.getIsSorted() === 'desc' ? (
-                <ArrowDown className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
-              )}
-            </button>
-          ),
-          size: 150,
-          minSize: 80
-        }
-      )
-    }
-
-    cols.push({
-      accessorKey: 'duration',
-      header: ({ column }) => (
-        <div className="text-right w-full pr-2">
+      },
+      {
+        accessorKey: 'artist',
+        header: ({ column }) => (
           <button
-            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+            className="flex items-center gap-1 hover:text-foreground transition-colors w-full"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            Duration
+            Artist
             {column.getIsSorted() === 'asc' ? (
               <ArrowUp className="h-3.5 w-3.5" />
             ) : column.getIsSorted() === 'desc' ? (
@@ -251,19 +200,61 @@ export function AudioList(): React.JSX.Element {
               <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
             )}
           </button>
-        </div>
-      ),
-      cell: (info) => (
-        <div className="text-right tabular-nums text-muted-foreground pr-2">
-          {msToClock(info.getValue() as number | null)}
-        </div>
-      ),
-      size: 90,
-      minSize: 80
-    })
+        ),
+        size: 150,
+        minSize: 80
+      },
+      {
+        accessorKey: 'album',
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1 hover:text-foreground transition-colors w-full"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Album
+            {column.getIsSorted() === 'asc' ? (
+              <ArrowUp className="h-3.5 w-3.5" />
+            ) : column.getIsSorted() === 'desc' ? (
+              <ArrowDown className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
+            )}
+          </button>
+        ),
+        size: 150,
+        minSize: 80
+      },
+      {
+        accessorKey: 'duration',
+        header: ({ column }) => (
+          <div className="text-right w-full pr-2">
+            <button
+              className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Duration
+              {column.getIsSorted() === 'asc' ? (
+                <ArrowUp className="h-3.5 w-3.5" />
+              ) : column.getIsSorted() === 'desc' ? (
+                <ArrowDown className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
+              )}
+            </button>
+          </div>
+        ),
+        cell: (info) => (
+          <div className="text-right tabular-nums text-muted-foreground pr-2">
+            {msToClock(info.getValue() as number | null)}
+          </div>
+        ),
+        size: 90,
+        minSize: 80
+      }
+    ]
 
     return cols
-  }, [isMusic, selectedAudio])
+  }, [selectedAudio])
 
   const table = useReactTable({
     data,

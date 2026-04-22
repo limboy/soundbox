@@ -2,11 +2,9 @@ export type TreeNode =
   | { kind: 'dir'; name: string; path: string; children: TreeNode[] }
   | { kind: 'audio'; name: string; path: string }
 
-export type CollectionType = 'Music' | 'Audio Book'
 export type Collection = {
   id: string
   title: string
-  type: CollectionType
   items: string[]
 }
 
