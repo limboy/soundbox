@@ -379,7 +379,7 @@ export function AudioList(): React.JSX.Element {
                   void window.soundbox.setState({ lastAudioPath: row.original.path })
                   setPlaying(true)
                 }}
-                className={cn('cursor-pointer group', active && 'bg-accent/60')}
+                className={cn('group', active && 'bg-accent/60')}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
