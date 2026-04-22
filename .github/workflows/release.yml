@@ -66,11 +66,14 @@ jobs:
       - name: Build renderer
         run: npm run build:renderer
 
-      - name: Build and publish
+      - name: Build, sign, notarize, and publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           for attempt in 1 2 3; do
             echo "::group::electron-builder attempt $attempt"
@@ -79,7 +82,7 @@ jobs:
               exit 0
             fi
             echo "::endgroup::"
-            echo "Attempt $attempt failed. Retrying in 30s..."
+            echo "Attempt $attempt failed (likely transient notarization timeout). Retrying in 30s..."
             sleep 30
           done
           echo "All attempts failed"

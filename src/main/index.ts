@@ -1,6 +1,8 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import pkg from 'electron-updater'
+const { autoUpdater } = pkg
 import icon from '../../resources/icon.png?asset'
 import {
   registerLocalProtocolHandler,
@@ -53,6 +55,35 @@ function createWindow(): void {
   }
 }
 
+function broadcastToAllWindows(channel: string, ...args: unknown[]): void {
+  for (const win of BrowserWindow.getAllWindows()) {
+    win.webContents.send(channel, ...args)
+  }
+}
+
+function initAutoUpdater(): void {
+  if (!app.isPackaged) return
+
+  autoUpdater.autoDownload = true
+  autoUpdater.autoInstallOnAppQuit = true
+
+  autoUpdater.on('update-downloaded', (info) => {
+    broadcastToAllWindows('soundbox:update-ready', { version: info.version })
+  })
+
+  autoUpdater.on('error', (err) => {
+    console.error('[autoUpdater]', err)
+  })
+
+  autoUpdater.checkForUpdates().catch(() => {})
+  setInterval(
+    () => {
+      autoUpdater.checkForUpdates().catch(() => {})
+    },
+    6 * 60 * 60 * 1000
+  )
+}
+
 app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.electron')
 
@@ -65,11 +96,18 @@ app.whenReady().then(async () => {
   registerFsIpc()
   registerStoreIpc()
 
+  ipcMain.handle('soundbox:apply-update', () => {
+    if (!app.isPackaged) return
+    autoUpdater.quitAndInstall()
+  })
+
   await readState()
 
   createWindow()
 
   await setupWatcher(getWindow)
+
+  initAutoUpdater()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

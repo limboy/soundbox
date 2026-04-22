@@ -6,6 +6,7 @@ import { TwoPane } from '@/components/layout/two-pane'
 import { FileTree } from '@/components/file-tree/file-tree'
 import { AudioList } from '@/components/player/audio-list'
 import { AudioPlayer } from '@/components/player/audio-player'
+import { UpdateIndicator } from '@/components/update-indicator'
 import { cn } from '@/lib/utils'
 import { useLibrary } from '@/store/library-store'
 import { useUI } from '@/store/ui-store'
@@ -103,8 +104,9 @@ export function PlayerRoute(): React.JSX.Element {
           )}
         </div>
 
-        {/* Right: Search */}
+        {/* Right: Update indicator + Search */}
         <div className="flex items-center gap-2 app-no-drag">
+          <UpdateIndicator />
           {isSearchOpen ? (
             <div className="flex items-center bg-muted/50 rounded-md px-2 py-1 h-7 border border-border/50 focus-within:ring-1 focus-within:ring-primary/30 transition-all">
               <Search className="size-3.5 text-muted-foreground mr-1.5" />

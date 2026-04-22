@@ -18,6 +18,8 @@ export type AppState = {
 
 export type LibraryChangedPayload = { kind: 'tree'; path: string }
 
+export type UpdateInfo = { version: string }
+
 export interface SoundboxApi {
   openFolder(): Promise<string | null>
   readTree(root: string): Promise<TreeNode>
@@ -30,5 +32,9 @@ export interface SoundboxApi {
   onStateUpdated(cb: (state: AppState) => void): () => void
   getPathInfo(path: string): Promise<{ isDirectory: boolean; isFile: boolean; ext: string } | null>
   getPathForFile(file: File): string
+  update: {
+    onUpdateReady(cb: (info: UpdateInfo) => void): () => void
+    apply(): Promise<void>
+  }
 }
 

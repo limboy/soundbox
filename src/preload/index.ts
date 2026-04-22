@@ -45,7 +45,17 @@ const soundbox = {
       isFile: boolean
       ext: string
     } | null>,
-  getPathForFile: (file: File) => webUtils.getPathForFile(file)
+  getPathForFile: (file: File) => webUtils.getPathForFile(file),
+  update: {
+    onUpdateReady: (cb: (info: { version: string }) => void) => {
+      const listener = (_: IpcRendererEvent, info: { version: string }): void => cb(info)
+      ipcRenderer.on('soundbox:update-ready', listener)
+      return () => {
+        ipcRenderer.removeListener('soundbox:update-ready', listener)
+      }
+    },
+    apply: () => ipcRenderer.invoke('soundbox:apply-update') as Promise<void>
+  }
 }
 
 
