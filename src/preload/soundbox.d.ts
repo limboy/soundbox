@@ -34,6 +34,9 @@ export interface SoundboxApi {
   onPlaySong(cb: (path: string) => void): () => void
   revealInFinder(path: string): Promise<void>
   showSongContextMenu(path: string): Promise<void>
+  showCollectionContextMenu(id: string, title: string): Promise<void>
+  onRenameCollection(cb: (id: string, title: string) => void): () => void
+  onDeleteCollection(cb: (id: string, title: string) => void): () => void
   getPathForFile(file: File): string
   update: {
     onUpdateReady(cb: (info: UpdateInfo) => void): () => void

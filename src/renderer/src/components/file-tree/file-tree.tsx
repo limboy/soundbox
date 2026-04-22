@@ -1,12 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
-import { Plus, Folder, Pencil, Trash2 } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { Plus, Folder } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger
-} from '@/components/ui/context-menu'
 import { useLibrary } from '@/store/library-store'
 import { usePlayer } from '@/store/player-store'
 
@@ -24,14 +18,7 @@ export function FileTree(): React.JSX.Element {
   const [editingTitle, setEditingTitle] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (editingId && inputRef.current) {
-      inputRef.current.focus()
-      inputRef.current.select()
-    }
-  }, [editingId])
-
-  const handleAddDefault = (): void => {
+  const handleAddDefault = useCallback((): void => {
     const baseName = 'New Collection'
     let title = baseName
     let counter = 1
@@ -44,22 +31,42 @@ export function FileTree(): React.JSX.Element {
     setEditingId(id)
     setEditingTitle(title)
     setPlaying(false)
-  }
+  }, [collections, addCollection, setPlaying])
 
-  const handleRename = (id: string, title: string): void => {
+  const handleRename = useCallback((id: string, title: string): void => {
     const trimmed = title.trim()
     if (trimmed) {
       updateCollectionTitle(id, trimmed)
     }
     setEditingId(null)
-  }
+  }, [updateCollectionTitle])
 
-  const handleDelete = (id: string, title: string): void => {
+  const handleDelete = useCallback((id: string, title: string): void => {
     if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
       deleteCollection(id)
     }
-  }
+  }, [deleteCollection])
 
+  useEffect(() => {
+    if (editingId && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [editingId])
+
+  useEffect(() => {
+    const unrename = window.soundbox.onRenameCollection((id, title) => {
+      setEditingId(id)
+      setEditingTitle(title)
+    })
+    const undelete = window.soundbox.onDeleteCollection((id, title) => {
+      handleDelete(id, title)
+    })
+    return () => {
+      unrename()
+      undelete()
+    }
+  }, [handleDelete])
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
       <ScrollArea className="flex-1 p-2">
@@ -85,36 +92,27 @@ export function FileTree(): React.JSX.Element {
                     />
                   </div>
                 ) : (
-                  <ContextMenu>
-                    <ContextMenuTrigger>
-                      <button
-                        onClick={() => selectCollection(c.id)}
-                        onDoubleClick={() => {
-                          setEditingId(c.id)
-                          setEditingTitle(c.title)
-                        }}
-                        className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-left transition-colors ${selectedCollectionId === c.id ? 'bg-primary/20 font-medium text-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}`}
-                      >
-                        <Folder className="h-4 w-4 shrink-0 opacity-70" />
-                        <span className="truncate">{c.title}</span>
-                      </button>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                      <ContextMenuItem
-                        onClick={() => {
-                          setEditingId(c.id)
-                          setEditingTitle(c.title)
-                        }}
-                      >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Rename
-                      </ContextMenuItem>
-                      <ContextMenuItem variant="destructive" onClick={() => handleDelete(c.id, c.title)}>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </ContextMenuItem>
-                    </ContextMenuContent>
-                  </ContextMenu>
+                  <button
+                    onClick={() => selectCollection(c.id)}
+                    onDoubleClick={() => {
+                      setEditingId(c.id)
+                      setEditingTitle(c.title)
+                    }}
+                    onContextMenu={(e) => {
+                      e.preventDefault()
+                      void window.soundbox.showCollectionContextMenu(c.id, c.title)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setEditingId(c.id)
+                        setEditingTitle(c.title)
+                      }
+                    }}
+                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-left transition-colors ${selectedCollectionId === c.id ? 'bg-primary/20 font-medium text-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}`}
+                  >
+                    <Folder className="h-4 w-4 shrink-0 opacity-70" />
+                    <span className="truncate">{c.title}</span>
+                  </button>
                 )}
               </div>
             ))}
