@@ -86,11 +86,6 @@ export function TransportControls({
               : basename(selectedAudio)
             : 'Ready to play'}
         </h2>
-        {m?.artist && m.artist !== 'Unknown' && (
-          <p className="line-clamp-1 text-center text-sm text-muted-foreground/80">
-            {m.artist}
-          </p>
-        )}
       </div>
 
       {/* Part 2: Progress Bar */}
