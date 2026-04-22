@@ -98,7 +98,7 @@ export function PlayerRoute(): React.JSX.Element {
               onClick={toggleLeft}
             >
               <PanelLeft
-                className={`size-4 transition-opacity ${leftSidebarOpen ? 'opacity-100' : 'opacity-50'}`}
+                className={`size-4 opacity-75`}
               />
             </Button>
           )}

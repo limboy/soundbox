@@ -77,7 +77,7 @@ export function FileTree(): React.JSX.Element {
             {collections.map((c) => (
               <div key={c.id}>
                 {editingId === c.id ? (
-                  <div className="flex items-center gap-2 rounded-md px-2 py-1 bg-accent/50">
+                  <div className="flex items-center gap-2 rounded-md px-2 py-1 bg-accent">
                     <Folder className="h-4 w-4 shrink-0 opacity-70" />
                     <input
                       ref={inputRef}
@@ -88,7 +88,7 @@ export function FileTree(): React.JSX.Element {
                         if (e.key === 'Enter') handleRename(c.id, editingTitle)
                         if (e.key === 'Escape') setEditingId(null)
                       }}
-                      className="w-full bg-transparent text-sm outline-none"
+                      className="w-full h-6 bg-transparent text-sm outline-none"
                     />
                   </div>
                 ) : (
@@ -108,7 +108,7 @@ export function FileTree(): React.JSX.Element {
                         setEditingTitle(c.title)
                       }
                     }}
-                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-left transition-colors ${selectedCollectionId === c.id ? 'bg-primary/20 font-medium text-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'}`}
+                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-left transition-colors ${selectedCollectionId === c.id ? 'bg-primary/10 text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}`}
                   >
                     <Folder className="h-4 w-4 shrink-0 opacity-70" />
                     <span className="truncate">{c.title}</span>
@@ -123,7 +123,7 @@ export function FileTree(): React.JSX.Element {
       <div className="mt-auto border-t">
         <button
           onClick={handleAddDefault}
-          className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors"
+          className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
         >
           <Plus className="h-4 w-4" />
           <span>New Collection</span>
