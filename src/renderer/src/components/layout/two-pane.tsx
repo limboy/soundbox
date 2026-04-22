@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const LEFT_MIN = 200
 const LEFT_MAX = 300
@@ -16,24 +16,32 @@ export function TwoPane({
   leftWidth: number
   onLeftWidthChange: (w: number) => void
 }): React.JSX.Element {
+  const [isDragging, setIsDragging] = useState(false)
+
   return (
     <div className="flex-1 min-h-0 flex overflow-hidden bg-background text-foreground relative">
+      <aside
+        className="shrink-0 border-r bg-secondary/40 backdrop-blur-sm overflow-hidden relative z-20"
+        style={{
+          width: leftOpen ? leftWidth : 0,
+          transition: isDragging ? 'none' : 'width 50ms ease',
+        }}
+        aria-hidden={!leftOpen}
+      >
+        <div style={{ width: leftWidth }} className="h-full">
+          {left}
+        </div>
+      </aside>
       {leftOpen && (
-        <>
-          <aside
-            className="shrink-0 border-r bg-secondary/40 backdrop-blur-sm overflow-hidden relative z-20"
-            style={{ width: leftWidth }}
-          >
-            {left}
-          </aside>
-          <Resizer
-            side="left"
-            currentSize={leftWidth}
-            min={LEFT_MIN}
-            max={LEFT_MAX}
-            onResize={onLeftWidthChange}
-          />
-        </>
+        <Resizer
+          side="left"
+          currentSize={leftWidth}
+          min={LEFT_MIN}
+          max={LEFT_MAX}
+          onResize={onLeftWidthChange}
+          onDragStart={() => setIsDragging(true)}
+          onDragEnd={() => setIsDragging(false)}
+        />
       )}
       <main className="flex-1 min-w-0 flex flex-col">{center}</main>
     </div>
@@ -50,12 +58,16 @@ function Resizer({
   min,
   max,
   onResize,
+  onDragStart,
+  onDragEnd,
 }: {
   side: 'left' | 'right'
   currentSize: number
   min: number
   max: number
   onResize: (w: number) => void
+  onDragStart?: () => void
+  onDragEnd?: () => void
 }): React.JSX.Element {
   const startX = useRef<number | null>(null)
   const startSize = useRef(0)
@@ -73,6 +85,7 @@ function Resizer({
     }
     document.body.style.cursor = ''
     document.body.style.userSelect = ''
+    onDragEnd?.()
   }
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
@@ -83,6 +96,7 @@ function Resizer({
     e.currentTarget.setPointerCapture(e.pointerId)
     document.body.style.cursor = 'col-resize'
     document.body.style.userSelect = 'none'
+    onDragStart?.()
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>): void => {
