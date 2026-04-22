@@ -27,7 +27,10 @@ async function walk(node: Extract<TreeNode, { kind: 'dir' }>, depth: number): Pr
   }
   entries.sort((a, b) => {
     if (a.isDirectory() !== b.isDirectory()) return a.isDirectory() ? -1 : 1
-    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    return a.name.localeCompare(b.name, undefined, { 
+      numeric: true,
+      sensitivity: 'base' 
+    })
   })
   for (const entry of entries) {
     if (IGNORE.has(entry.name)) continue

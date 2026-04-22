@@ -151,6 +151,7 @@ export function AudioList(): React.JSX.Element {
     const cols: ColumnDef<AudioItem>[] = [
       {
         id: 'index',
+        accessorKey: 'index',
         header: () => <div className="pl-2">#</div>,
         cell: (info) => {
           const path = info.row.original.path
@@ -160,7 +161,7 @@ export function AudioList(): React.JSX.Element {
               {active ? (
                 <Play className="h-3.5 w-3.5 text-primary shrink-0 fill-primary" />
               ) : (
-                info.row.original.index
+                (info as any).displayIndex
               )}
             </div>
           )
@@ -382,7 +383,7 @@ export function AudioList(): React.JSX.Element {
           </ContextMenuContent>
         </ContextMenu>
         <TableBody>
-          {table.getRowModel().rows.map((row) => {
+          {table.getRowModel().rows.map((row, i) => {
             const active = row.original.path === selectedAudio
             return (
               <TableRow
@@ -397,7 +398,10 @@ export function AudioList(): React.JSX.Element {
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
                     <div className="truncate">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(cell.column.columnDef.cell, {
+                        ...cell.getContext(),
+                        displayIndex: i + 1
+                      } as any)}
                     </div>
                   </TableCell>
                 ))}
