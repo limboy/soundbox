@@ -414,10 +414,6 @@ export function AudioList(): React.JSX.Element {
                 onClick={() => {
                   selectAudio(row.original.path)
                   void window.soundbox.setState({ lastAudioPath: row.original.path })
-                }}
-                onDoubleClick={() => {
-                  selectAudio(row.original.path)
-                  void window.soundbox.setState({ lastAudioPath: row.original.path })
                   setPlaying(true)
                 }}
                 className={cn('cursor-pointer group', active && 'bg-accent/60')}
