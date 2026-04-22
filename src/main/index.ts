@@ -12,6 +12,7 @@ import { readState } from './lib/store'
 import { registerFsIpc } from './ipc/fs'
 import { registerDialogIpc } from './ipc/dialog'
 import { registerStoreIpc } from './ipc/store'
+import { registerMenuIpc } from './ipc/menu'
 import { flushCache } from './lib/metadata-cache'
 import { closeWatcher, setupWatcher } from './lib/watcher'
 
@@ -95,6 +96,7 @@ app.whenReady().then(async () => {
   registerDialogIpc(getWindow)
   registerFsIpc()
   registerStoreIpc()
+  registerMenuIpc(getWindow)
 
   ipcMain.handle('soundbox:apply-update', () => {
     if (!app.isPackaged) return

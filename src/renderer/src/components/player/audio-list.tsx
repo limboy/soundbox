@@ -113,12 +113,15 @@ export function AudioList(): React.JSX.Element {
       cancelled = true
       window.removeEventListener('focus', handleFocus)
     }
-  }, [
-    rows,
-    setBulkTrackInfo,
-    setTrackDuration,
-    setTrackMeta
-  ])
+  }, [rows, setBulkTrackInfo, setTrackDuration, setTrackMeta])
+
+  useEffect(() => {
+    return window.soundbox.onPlaySong((path) => {
+      selectAudio(path)
+      void window.soundbox.setState({ lastAudioPath: path })
+      setPlaying(true)
+    })
+  }, [selectAudio, setPlaying])
 
   const searchQuery = useUI((s) => s.searchQuery)
 
@@ -392,6 +395,10 @@ export function AudioList(): React.JSX.Element {
                   selectAudio(row.original.path)
                   void window.soundbox.setState({ lastAudioPath: row.original.path })
                   setPlaying(true)
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault()
+                  void window.soundbox.showSongContextMenu(row.original.path)
                 }}
                 className={cn('group', active && 'bg-accent/60')}
               >

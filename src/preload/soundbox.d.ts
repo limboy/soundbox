@@ -31,6 +31,9 @@ export interface SoundboxApi {
   onLibraryChanged(cb: (payload: LibraryChangedPayload) => void): () => void
   onStateUpdated(cb: (state: AppState) => void): () => void
   getPathInfo(path: string): Promise<{ isDirectory: boolean; isFile: boolean; ext: string } | null>
+  onPlaySong(cb: (path: string) => void): () => void
+  revealInFinder(path: string): Promise<void>
+  showSongContextMenu(path: string): Promise<void>
   getPathForFile(file: File): string
   update: {
     onUpdateReady(cb: (info: UpdateInfo) => void): () => void

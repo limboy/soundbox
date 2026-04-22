@@ -45,6 +45,15 @@ const soundbox = {
       isFile: boolean
       ext: string
     } | null>,
+  onPlaySong: (cb: (path: string) => void) => {
+    const listener = (_: IpcRendererEvent, path: string): void => cb(path)
+    ipcRenderer.on('soundbox:play-song', listener)
+    return () => {
+      ipcRenderer.removeListener('soundbox:play-song', listener)
+    }
+  },
+  revealInFinder: (path: string) => ipcRenderer.invoke('soundbox:revealInFinder', path) as Promise<void>,
+  showSongContextMenu: (path: string) => ipcRenderer.invoke('soundbox:showSongContextMenu', path) as Promise<void>,
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
   update: {
     onUpdateReady: (cb: (info: { version: string }) => void) => {

@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { ipcMain, shell } from 'electron'
 import { stat } from 'node:fs/promises'
 import { extname } from 'node:path'
 import { parseFile } from 'music-metadata'
