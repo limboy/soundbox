@@ -1,7 +1,7 @@
 import { protocol } from 'electron'
 import { createReadStream, promises as fs } from 'node:fs'
 import { extname, basename, join, dirname } from 'node:path'
-import { AUDIO_EXTS, TEXT_EXTS } from './scan'
+import { AUDIO_EXTS } from './scan'
 import { isAuthorizedPath } from './store'
 
 export const LOCAL_SCHEME = 'local'
@@ -22,20 +22,9 @@ export function registerLocalSchemePrivileged(): void {
 }
 
 function isAuthorized(absPath: string): boolean {
-  if (isAuthorizedPath(absPath)) return true
-
-  // Check if it's a companion of an authorized audio file
-  const ext = extname(absPath).toLowerCase()
-  if (TEXT_EXTS.has(ext)) {
-    const dir = dirname(absPath)
-    const base = basename(absPath, ext)
-    for (const audioExt of AUDIO_EXTS) {
-      if (isAuthorizedPath(join(dir, base + audioExt))) return true
-    }
-  }
-
-  return false
+  return isAuthorizedPath(absPath)
 }
+
 
 export function registerLocalProtocolHandler(): void {
   protocol.handle(LOCAL_SCHEME, async (request) => {
@@ -75,13 +64,9 @@ export function registerLocalProtocolHandler(): void {
         '.m4b': 'audio/mp4',
         '.flac': 'audio/flac',
         '.ogg': 'audio/ogg',
-        '.wav': 'audio/wav',
-        '.lrc': 'text/plain',
-        '.txt': 'text/plain',
-        '.md': 'text/markdown',
-        '.srt': 'text/plain',
-        '.vtt': 'text/vtt'
+        '.wav': 'audio/wav'
       }
+
       const contentType = mimeMap[extname(absPath).toLowerCase()] || 'application/octet-stream'
 
       const rangeHeader = request.headers.get('range')

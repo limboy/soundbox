@@ -2,19 +2,19 @@ import { useEffect, useRef } from 'react'
 
 const LEFT_MIN = 200
 const LEFT_MAX = 300
-const RIGHT_MIN = 280
-const RIGHT_MAX = 500
 
-export function ThreePane({
+export function TwoPane({
   left,
   center,
-  right,
   leftOpen,
-  rightOpen,
   leftWidth,
-  rightWidth,
   onLeftWidthChange,
-  onRightWidthChange,
+}: {
+  left: React.ReactNode
+  center: React.ReactNode
+  leftOpen: boolean
+  leftWidth: number
+  onLeftWidthChange: (w: number) => void
 }): React.JSX.Element {
   return (
     <div className="flex-1 min-h-0 flex overflow-hidden bg-background text-foreground relative">
@@ -36,23 +36,6 @@ export function ThreePane({
         </>
       )}
       <main className="flex-1 min-w-0 flex flex-col">{center}</main>
-      {rightOpen && (
-        <>
-          <Resizer
-            side="right"
-            currentSize={rightWidth}
-            min={RIGHT_MIN}
-            max={RIGHT_MAX}
-            onResize={onRightWidthChange}
-          />
-          <aside
-            className="shrink-0 border-l overflow-hidden relative z-20"
-            style={{ width: rightWidth }}
-          >
-            {right}
-          </aside>
-        </>
-      )}
     </div>
   )
 }

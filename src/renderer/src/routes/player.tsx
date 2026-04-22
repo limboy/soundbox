@@ -1,15 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-  PanelLeft,
-  PanelRight
+  PanelLeft
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ThreePane } from '@/components/layout/three-pane'
+import { TwoPane } from '@/components/layout/two-pane'
 import { FileTree } from '@/components/file-tree/file-tree'
 import { AudioList } from '@/components/player/audio-list'
 import { AudioPlayer } from '@/components/player/audio-player'
-import { SidecarPanel } from '@/components/sidecar/sidecar-panel'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { useLibrary } from '@/store/library-store'
 import { useUI } from '@/store/ui-store'
@@ -20,13 +18,9 @@ export function PlayerRoute(): React.JSX.Element {
   const selectAudio = useLibrary((s) => s.selectAudio)
 
   const leftSidebarOpen = useUI((s) => s.leftSidebarOpen)
-  const rightSidebarOpen = useUI((s) => s.rightSidebarOpen)
   const leftSidebarWidth = useUI((s) => s.leftSidebarWidth)
-  const rightSidebarWidth = useUI((s) => s.rightSidebarWidth)
   const setLeftSidebarOpen = useUI((s) => s.setLeftSidebarOpen)
-  const setRightSidebarOpen = useUI((s) => s.setRightSidebarOpen)
   const setLeftSidebarWidth = useUI((s) => s.setLeftSidebarWidth)
-  const setRightSidebarWidth = useUI((s) => s.setRightSidebarWidth)
 
   const [isCompact, setIsCompact] = useState(window.innerWidth < 500)
 
@@ -37,14 +31,13 @@ export function PlayerRoute(): React.JSX.Element {
 
       if (compact) {
         setLeftSidebarOpen(false)
-        setRightSidebarOpen(false)
       }
     }
 
     window.addEventListener('resize', handleResize)
     handleResize()
     return () => window.removeEventListener('resize', handleResize)
-  }, [setLeftSidebarOpen, setRightSidebarOpen])
+  }, [setLeftSidebarOpen])
 
   useEffect(() => {
     void (async () => {
@@ -64,10 +57,6 @@ export function PlayerRoute(): React.JSX.Element {
   const toggleLeft = useCallback(() => {
     setLeftSidebarOpen(!leftSidebarOpen)
   }, [leftSidebarOpen, setLeftSidebarOpen])
-
-  const toggleRight = useCallback(() => {
-    setRightSidebarOpen(!rightSidebarOpen)
-  }, [rightSidebarOpen, setRightSidebarOpen])
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
@@ -91,32 +80,17 @@ export function PlayerRoute(): React.JSX.Element {
           )}
         </div>
 
-        {/* Right: theme switcher + right sidebar toggler */}
+        {/* Right: theme switcher */}
         <div className="app-no-drag flex items-center gap-2 shrink-0">
           <ThemeSwitcher />
-          {!isCompact && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="size-7"
-              aria-label={rightSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
-              aria-pressed={rightSidebarOpen}
-              onClick={toggleRight}
-            >
-              <PanelRight className={`size-4 transition-opacity ${rightSidebarOpen ? 'opacity-100' : 'opacity-50'}`} />
-            </Button>
-          )}
         </div>
       </header>
 
       {/* Main Content */}
-      <ThreePane
+      <TwoPane
         leftOpen={!isCompact && leftSidebarOpen}
-        rightOpen={!isCompact && rightSidebarOpen}
         leftWidth={leftSidebarWidth}
-        rightWidth={rightSidebarWidth}
         onLeftWidthChange={setLeftSidebarWidth}
-        onRightWidthChange={setRightSidebarWidth}
         left={<FileTree />}
         center={
           <div className="h-full w-full" style={{ containerType: 'inline-size' }}>
@@ -128,8 +102,8 @@ export function PlayerRoute(): React.JSX.Element {
             </ScrollArea>
           </div>
         }
-        right={<SidecarPanel />}
       />
     </div>
   )
 }
+

@@ -4,17 +4,6 @@ import { basename, extname, join } from 'node:path'
 
 export const AUDIO_EXTS = new Set(['.mp3', '.m4a', '.m4b', '.flac'])
 
-export const TEXT_EXTS = new Set([
-  '.lrc',
-  '.srt',
-  '.vtt',
-  '.txt',
-  '.md',
-  '.markdown',
-  '.html',
-  '.htm'
-])
-
 export type TreeNode =
   | { kind: 'dir'; name: string; path: string; children: TreeNode[] }
   | { kind: 'audio'; name: string; path: string }
@@ -67,60 +56,3 @@ export function flattenAudio(node: TreeNode): Array<Extract<TreeNode, { kind: 'a
   return out
 }
 
-import { app } from 'electron'
-import crypto from 'node:crypto'
-import { access } from 'node:fs/promises'
-
-export async function findCompanions(
-  audioPath: string
-): Promise<Array<{ ext: string; path: string }>> {
-  const dir: string = audioPath.replace(/[^/\\]+$/, '')
-  const base: string = basename(audioPath, extname(audioPath))
-  let entries: Dirent[] = []
-  try {
-    entries = (await readdir(dir, { withFileTypes: true })) as Dirent[]
-  } catch {
-    entries = []
-  }
-  const out: Array<{ ext: string; path: string }> = []
-  for (const entry of entries) {
-    if (!entry.isFile()) continue
-    const ext: string = extname(entry.name).toLowerCase()
-    if (!TEXT_EXTS.has(ext)) continue
-    const entryBase: string = basename(entry.name, extname(entry.name))
-    if (entryBase !== base) continue
-    out.push({ ext, path: join(dir, entry.name) })
-  }
-
-  // Also check lrclib cache
-  try {
-    const lyricsCacheDir: string = join(app.getPath('userData'), 'lyricsCache')
-    const hash: string = crypto.createHash('md5').update(audioPath).digest('hex')
-    const cachePath: string = join(lyricsCacheDir, `${hash}.lrc`)
-    await access(cachePath)
-    // If it exists, add it to companions if not already present
-    if (!out.find((c) => c.ext === '.lrc')) {
-      out.push({ ext: '.lrc', path: cachePath })
-    }
-  } catch {
-    // Ignore error
-  }
-
-  out.sort((a, b) => extOrder(a.ext) - extOrder(b.ext))
-  return out
-}
-
-const EXT_ORDER: Record<string, number> = {
-  '.lrc': 0,
-  '.srt': 1,
-  '.vtt': 2,
-  '.md': 3,
-  '.markdown': 4,
-  '.txt': 5,
-  '.html': 6,
-  '.htm': 7
-}
-
-function extOrder(ext: string): number {
-  return EXT_ORDER[ext] ?? 99
-}
