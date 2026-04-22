@@ -159,4 +159,12 @@
     scrollbar-width: thin;
     scrollbar-color: var(--muted-foreground) transparent;
   }
+
+  /* Fix Radix ScrollArea viewport content to allow flex-1 children to fill height */
+  [data-slot="scroll-area-viewport"] > div {
+    display: flex !important;
+    flex-direction: column;
+    min-height: 100%;
+    width: 100%;
+  }
 }

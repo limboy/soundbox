@@ -201,10 +201,10 @@ export function AudioList(): React.JSX.Element {
         sortingFn: (rowA, rowB, columnId) => {
           const a = rowA.getValue(columnId) as string
           const b = rowB.getValue(columnId) as string
-          return a.localeCompare(b, undefined, { 
-            numeric: true, 
+          return a.localeCompare(b, undefined, {
+            numeric: true,
             sensitivity: 'base',
-            usage: 'sort' 
+            usage: 'sort'
           })
         },
         size: 250,
@@ -299,8 +299,10 @@ export function AudioList(): React.JSX.Element {
     getSortedRowModel: getSortedRowModel()
   })
 
+  let content: React.ReactNode
+
   if (!activeCollection) {
-    return (
+    content = (
       <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
         <div>
           <FileAudio className="mx-auto h-8 w-8 opacity-30" />
@@ -308,21 +310,17 @@ export function AudioList(): React.JSX.Element {
         </div>
       </div>
     )
-  }
-
-  if (rows.length === 0) {
-    return (
+  } else if (rows.length === 0) {
+    content = (
       <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
         <div>
           <FileAudio className="mx-auto h-8 w-8 opacity-30" />
-          <p className="mt-2">Drag and drop audio files here.</p>
+          <p className="mt-2">Drag audio files or folder here.</p>
         </div>
       </div>
     )
-  }
-
-  return (
-    <div className="w-full">
+  } else {
+    content = (
       <Table className="min-w-full table-fixed border-collapse">
         <ContextMenu>
           <ContextMenuTrigger asChild>
@@ -417,6 +415,12 @@ export function AudioList(): React.JSX.Element {
           })}
         </TableBody>
       </Table>
+    )
+  }
+
+  return (
+    <div className="flex w-full flex-1 flex-col">
+      {content}
     </div>
   )
 }

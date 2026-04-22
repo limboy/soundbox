@@ -229,20 +229,20 @@ function PlayerCenter(): React.JSX.Element {
 
   return (
     <div
-      className="h-full w-full relative"
+      className="h-full w-full relative flex flex-col"
       style={{ containerType: 'inline-size' }}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <ScrollArea className="h-full">
-        <div
-          ref={playerRef}
-          className="sticky top-0 left-0 z-30 w-[100cqw] bg-background/95 backdrop-blur-md"
-        >
-          <AudioPlayer />
-        </div>
+      <div
+        ref={playerRef}
+        className="z-30 w-full bg-background/95 backdrop-blur-md border-b shrink-0"
+      >
+        <AudioPlayer />
+      </div>
+      <ScrollArea className="flex-1">
         <AudioList />
       </ScrollArea>
       <div
