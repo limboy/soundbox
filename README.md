@@ -2,6 +2,8 @@
 
 SoundBox is a modern, minimalist audio player for macOS (and more). Built with a focus on simplicity and efficiency, it helps you organize and enjoy your local audio collection.
 
+![](./assets/screenshot1.png)
+
 ## 💻 Requirements
 
 - **macOS 12.0 (Monterey)** or later
