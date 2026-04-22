@@ -348,18 +348,22 @@ export function AudioList(): React.JSX.Element {
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className="group whitespace-nowrap relative border-r last:border-0 border-transparent hover:border-border/30 transition-colors shadow-[inset_0_-1px_0_var(--border)]"
+                  className="group whitespace-nowrap relative last:border-0 hover:border-border/30 transition-colors"
                   style={{ width: header.getSize() }}
                 >
                   {header.isPlaceholder
                     ? null
                     : flexRender(header.column.columnDef.header, header.getContext())}
+                  
+                  {/* Bottom Border */}
+                  <div className="absolute inset-x-0 bottom-0 h-px bg-border z-30 pointer-events-none" />
+
                   {header.column.getCanResize() && !header.column.getIsLastColumn() && (
                     <div
                       onMouseDown={header.getResizeHandler()}
                       onTouchStart={header.getResizeHandler()}
                       className={cn(
-                        'absolute top-0 bottom-0 -right-1.5 w-3 cursor-col-resize select-none touch-none z-20 group/resizer',
+                        'absolute top-0 bottom-0 -right-1.5 w-3 cursor-col-resize select-none touch-none z-20 group/resizer bg-transparent',
                         header.column.getIsResizing() ? '' : ''
                       )}
                     >
