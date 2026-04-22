@@ -130,13 +130,16 @@ export function TransportControls({
           size="icon"
           variant="ghost"
           className={cn(
-            'h-9 w-9 transition-colors',
-            shuffle ? 'text-primary hover:text-primary/80' : 'hover:text-foreground'
+            'h-9 w-9 transition-all relative',
+            shuffle ? 'text-primary opacity-100' : 'text-muted-foreground/50 hover:text-foreground'
           )}
           onClick={toggleShuffle}
           title="Shuffle"
         >
-          <Shuffle className={cn('h-4.5 w-4.5', shuffle && 'fill-primary/20')} />
+          <Shuffle className="h-4.5 w-4.5" strokeWidth={2} />
+          {shuffle && (
+            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+          )}
         </Button>
 
         <Button
@@ -179,16 +182,22 @@ export function TransportControls({
           size="icon"
           variant="ghost"
           className={cn(
-            'h-9 w-9 transition-colors',
-            loopMode !== 'off' ? 'text-primary hover:text-primary/80' : 'hover:text-foreground'
+            'h-9 w-9 transition-all relative',
+            loopMode !== 'off' ? 'text-primary opacity-100' : 'text-muted-foreground/50 hover:text-foreground'
           )}
           onClick={toggleLoop}
           title={loopMode === 'one' ? 'Repeat One' : loopMode === 'all' ? 'Repeat All' : 'Repeat Off'}
         >
           {loopMode === 'one' ? (
-            <Repeat1 className="h-4.5 w-4.5" />
+            <Repeat1 className="h-4.5 w-4.5" strokeWidth={2} />
           ) : (
-            <Repeat className={cn('h-4.5 w-4.5', loopMode === 'all' && 'fill-primary/20')} />
+            <Repeat
+              className="h-4.5 w-4.5"
+              strokeWidth={2}
+            />
+          )}
+          {loopMode !== 'off' && (
+            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
           )}
         </Button>
       </div>
