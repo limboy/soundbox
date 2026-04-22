@@ -46,7 +46,7 @@
           "arch": "arm64"
         }
       ],
-      "notarize": false
+      "notarize": true
     },
     "files": [
       "out/**/*",
