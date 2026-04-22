@@ -1,7 +1,6 @@
 import { protocol } from 'electron'
 import { createReadStream, promises as fs } from 'node:fs'
-import { extname, basename, join, dirname } from 'node:path'
-import { AUDIO_EXTS } from './scan'
+import { extname } from 'node:path'
 import { isAuthorizedPath } from './store'
 
 export const LOCAL_SCHEME = 'local'

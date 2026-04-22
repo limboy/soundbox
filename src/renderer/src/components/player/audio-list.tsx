@@ -158,7 +158,7 @@ export function AudioList(): React.JSX.Element {
           const active = path === selectedAudio
           return (
             <div className="flex items-center gap-2">
-              {active && <Play className="h-3.5 w-3.5 text-primary flex-shrink-0" />}
+              {active && <Play className="h-3.5 w-3.5 text-primary shrink-0" />}
               <span className={cn('truncate', active && 'text-primary font-medium')}>
                 {info.getValue() as string}
               </span>
