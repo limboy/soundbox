@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
-import { pathToLocalUrl } from '@/lib/audio-extensions'
+import { useCallback, useEffect, useRef } from 'react'
+import { basename, pathToLocalUrl } from '@/lib/audio-extensions'
 import { secondsToMs } from '@/lib/format-time'
 import { useLibrary } from '@/store/library-store'
 import { usePlayer } from '@/store/player-store'
@@ -24,6 +24,7 @@ export function AudioPlayer(): React.JSX.Element {
   const rate = usePlayer((s) => s.rate)
   const seekRequestMs = usePlayer((s) => s.seekRequestMs)
   const clearSeekRequest = usePlayer((s) => s.clearSeekRequest)
+  const trackMeta = useLibrary((s) => s.trackMeta)
   
   useEffect(() => {
     const a = audioRef.current
@@ -87,7 +88,7 @@ export function AudioPlayer(): React.JSX.Element {
   const shuffle = usePlayer((s) => s.shuffle)
   const loopMode = usePlayer((s) => s.loopMode)
 
-  const onNext = (forcePlay = false): void => {
+  const onNext = useCallback((forcePlay = false): void => {
     let list = activeCollection?.items ?? []
     let idx = selectedAudio ? list.indexOf(selectedAudio) : -1
 
@@ -136,9 +137,9 @@ export function AudioPlayer(): React.JSX.Element {
     if (forcePlay || isPlaying) {
       setPlaying(true)
     }
-  }
+  }, [activeCollection, collections, selectedAudio, shuffle, loopMode, isPlaying, selectAudio, setPlaying])
 
-  const onPrev = (): void => {
+  const onPrev = useCallback((): void => {
     let list = activeCollection?.items ?? []
     let idx = selectedAudio ? list.indexOf(selectedAudio) : -1
 
@@ -172,7 +173,53 @@ export function AudioPlayer(): React.JSX.Element {
     if (isPlaying) {
       setPlaying(true)
     }
-  }
+  }, [activeCollection, collections, selectedAudio, shuffle, isPlaying, selectAudio, setPlaying])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (
+        document.activeElement instanceof HTMLInputElement ||
+        document.activeElement instanceof HTMLTextAreaElement ||
+        (document.activeElement as HTMLElement)?.isContentEditable
+      ) {
+        return
+      }
+
+      switch (e.key) {
+        case ' ':
+          e.preventDefault()
+          setPlaying(!isPlaying)
+          break
+        case ',':
+        case '<':
+          onPrev()
+          break
+        case '.':
+        case '>':
+          onNext()
+          break
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isPlaying, setPlaying, onPrev, onNext])
+
+  useEffect(() => {
+    if ('mediaSession' in navigator && selectedAudio) {
+      const m = trackMeta[selectedAudio]
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: m?.title && m.title !== 'Unknown' ? m.title : basename(selectedAudio),
+        artist: m?.artist && m.artist !== 'Unknown' ? m.artist : 'Unknown Artist',
+        album: m?.album && m.album !== 'Unknown' ? m.album : 'Unknown Album',
+      })
+
+      navigator.mediaSession.setActionHandler('play', () => setPlaying(true))
+      navigator.mediaSession.setActionHandler('pause', () => setPlaying(false))
+      navigator.mediaSession.setActionHandler('previoustrack', onPrev)
+      navigator.mediaSession.setActionHandler('nexttrack', () => onNext(false))
+    }
+  }, [selectedAudio, trackMeta, setPlaying, onPrev, onNext])
 
   return (
     <div className="flex flex-col gap-2 border-b bg-background px-4 py-4">
