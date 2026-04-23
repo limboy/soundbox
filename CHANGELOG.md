@@ -3,6 +3,22 @@
 All notable changes to this project are documented here.
 This file is generated automatically from [Conventional Commits](https://www.conventionalcommits.org/) — run `npm run changelog` to regenerate.
 
+## [v1.0.3](https://github.com/limboy/soundbox/compare/v1.0.2...v1.0.3) - 2026-04-23
+
+### Features
+
+- persist and restore main window bounds in application state ([424eb45](https://github.com/limboy/soundbox/commit/424eb4594c93b47274c3821fab426153b63a3063))
+- implement MediaSession support and global keyboard shortcuts for playback control in audio player ([8511bd1](https://github.com/limboy/soundbox/commit/8511bd1b7588580068e5ae829c2fa844c0aae803))
+
+### Refactoring
+
+- update context menu utility classes to use standard spacing and simplified data attributes ([d6b40aa](https://github.com/limboy/soundbox/commit/d6b40aa2ec0b2c7df9b00d09c443699e39b66462))
+
+### Documentation
+
+- add screenshot to README to visualize interface ([424a0dc](https://github.com/limboy/soundbox/commit/424a0dc2eee9732b5f64bee1a21930f72fe215da))
+- update CHANGELOG for v1.0.2 ([0eea465](https://github.com/limboy/soundbox/commit/0eea4652f70e0d78558135e284251c8fefe0a2d4))
+
 ## [v1.0.2](https://github.com/limboy/soundbox/compare/v1.0.1...v1.0.2) - 2026-04-22
 
 ### Bug Fixes
