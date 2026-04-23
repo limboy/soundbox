@@ -8,7 +8,7 @@ import {
   registerLocalProtocolHandler,
   registerLocalSchemePrivileged
 } from './lib/protocol'
-import { readState } from './lib/store'
+import { readState, writeState } from './lib/store'
 import { registerFsIpc } from './ipc/fs'
 import { registerDialogIpc } from './ipc/dialog'
 import { registerStoreIpc } from './ipc/store'
@@ -24,10 +24,15 @@ function getWindow(): BrowserWindow | null {
   return mainWindow && !mainWindow.isDestroyed() ? mainWindow : null
 }
 
-function createWindow(): void {
+async function createWindow(): Promise<void> {
+  const state = await readState()
+  const { windowBounds } = state
+
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    x: windowBounds?.x,
+    y: windowBounds?.y,
+    width: windowBounds?.width || 1200,
+    height: windowBounds?.height || 800,
     minWidth: 400,
     minHeight: 200,
     show: false,
@@ -42,6 +47,28 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show()
+  })
+
+  let saveTimeout: NodeJS.Timeout | null = null
+  const saveBounds = (): void => {
+    if (saveTimeout) clearTimeout(saveTimeout)
+    saveTimeout = setTimeout(() => {
+      const bounds = mainWindow?.getBounds()
+      if (bounds) {
+        void writeState({ windowBounds: bounds })
+      }
+    }, 500)
+  }
+
+  mainWindow.on('resize', saveBounds)
+  mainWindow.on('move', saveBounds)
+
+  mainWindow.on('close', () => {
+    if (saveTimeout) clearTimeout(saveTimeout)
+    const bounds = mainWindow?.getBounds()
+    if (bounds) {
+      void writeState({ windowBounds: bounds })
+    }
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -105,14 +132,14 @@ app.whenReady().then(async () => {
 
   await readState()
 
-  createWindow()
+  await createWindow()
 
   await setupWatcher(getWindow)
 
   initAutoUpdater()
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) void createWindow()
   })
 })
 

@@ -16,6 +16,12 @@ export type AppState = {
   collections: Collection[]
   selectedCollectionId: string | null
   lastAudioPath: string | null
+  windowBounds?: {
+    x?: number
+    y?: number
+    width: number
+    height: number
+  }
 }
 
 const DEFAULT: AppState = {
