@@ -14,6 +14,7 @@ export type AppState = {
   collections: Collection[]
   selectedCollectionId: string | null
   lastAudioPath: string | null
+  likedPaths?: Record<string, number>
 }
 
 export type LibraryChangedPayload = { kind: 'tree'; path: string }

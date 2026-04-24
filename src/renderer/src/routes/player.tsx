@@ -15,6 +15,7 @@ export function PlayerRoute(): React.JSX.Element {
   const setCollections = useLibrary((s) => s.setCollections)
   const selectCollection = useLibrary((s) => s.selectCollection)
   const selectAudio = useLibrary((s) => s.selectAudio)
+  const setLikedPaths = useLibrary((s) => s.setLikedPaths)
 
   const leftSidebarOpen = useUI((s) => s.leftSidebarOpen)
   const leftSidebarWidth = useUI((s) => s.leftSidebarWidth)
@@ -56,8 +57,11 @@ export function PlayerRoute(): React.JSX.Element {
       if (state.lastAudioPath) {
         queueMicrotask(() => selectAudio(state.lastAudioPath))
       }
+      if (state.likedPaths) {
+        setLikedPaths(state.likedPaths)
+      }
     })()
-  }, [setCollections, selectCollection, selectAudio])
+  }, [setCollections, selectCollection, selectAudio, setLikedPaths])
 
   useEffect(() => {
     return window.soundbox.onStateUpdated((state) => {
@@ -69,8 +73,11 @@ export function PlayerRoute(): React.JSX.Element {
       if (state.lastAudioPath !== prev.selectedAudio) {
         selectAudio(state.lastAudioPath)
       }
+      if (state.likedPaths) {
+        setLikedPaths(state.likedPaths)
+      }
     })
-  }, [setCollections, selectAudio])
+  }, [setCollections, selectAudio, setLikedPaths])
 
   const toggleLeft = useCallback(() => {
     setLeftSidebarOpen(!leftSidebarOpen)

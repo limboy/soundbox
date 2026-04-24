@@ -1,4 +1,4 @@
-import { FileAudio, Play, ChevronsUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { FileAudio, Play, ChevronsUpDown, ArrowUp, ArrowDown, Heart } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import {
   Table,
@@ -37,6 +37,7 @@ type AudioItem = {
   album: string
   duration: number | null
   index: number
+  likedAt: number | null
 }
 
 export function AudioList(): React.JSX.Element {
@@ -44,6 +45,8 @@ export function AudioList(): React.JSX.Element {
   const selectedCollectionId = useLibrary((s) => s.selectedCollectionId)
   const selectedAudio = useLibrary((s) => s.selectedAudio)
   const selectAudio = useLibrary((s) => s.selectAudio)
+  const toggleLike = useLibrary((s) => s.toggleLike)
+  const likedPaths = useLibrary((s) => s.likedPaths)
   const setPlaying = usePlayer((s) => s.setPlaying)
 
   const trackMeta = useLibrary((s) => s.trackMeta)
@@ -135,7 +138,8 @@ export function AudioList(): React.JSX.Element {
         title: m?.title && m.title !== 'Unknown' ? m.title : basename(path),
         artist: m?.artist && m.artist !== 'Unknown' ? m.artist : '-',
         album: m?.album && m.album !== 'Unknown' ? m.album : '-',
-        duration
+        duration,
+        likedAt: likedPaths[path] || null
       }
     })
 
@@ -148,7 +152,7 @@ export function AudioList(): React.JSX.Element {
         item.artist.toLowerCase().includes(q) ||
         item.album.toLowerCase().includes(q)
     )
-  }, [rows, trackMeta, trackDurations, searchQuery])
+  }, [rows, trackMeta, trackDurations, searchQuery, likedPaths])
 
   const columns = useMemo<ColumnDef<AudioItem>[]>(() => {
     const cols: ColumnDef<AudioItem>[] = [
@@ -169,8 +173,51 @@ export function AudioList(): React.JSX.Element {
             </div>
           )
         },
-        size: 50,
+        size: 30,
         enableHiding: false
+      },
+      {
+        id: 'Like',
+        accessorKey: 'likedAt',
+        header: ({ column }) => (
+          <div className="flex items-center justify-center w-full">
+            <button
+              className="flex items-center gap-1 hover:text-foreground transition-colors"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Like
+              {column.getIsSorted() === 'asc' ? (
+                <ArrowUp className="h-3.5 w-3.5" />
+              ) : column.getIsSorted() === 'desc' ? (
+                <ArrowDown className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
+              )}
+            </button>
+          </div>
+        ),
+        cell: (info) => {
+          const likedAt = info.getValue() as number | null
+          const path = info.row.original.path
+          return (
+            <div className="flex items-center justify-center">
+              <button
+                className={cn(
+                  'p-1.5 rounded-full transition-all hover:bg-primary/10',
+                  likedAt ? 'text-primary' : 'text-muted-foreground/30 opacity-0 group-hover:opacity-100'
+                )}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleLike(path)
+                }}
+              >
+                <Heart className={cn('h-4 w-4', likedAt && 'fill-primary')} />
+              </button>
+            </div>
+          )
+        },
+        size: 30,
+        enableHiding: true
       },
       {
         accessorKey: 'title',
@@ -281,7 +328,7 @@ export function AudioList(): React.JSX.Element {
     ]
 
     return cols
-  }, [selectedAudio])
+  }, [selectedAudio, toggleLike])
 
   const table = useReactTable({
     data,

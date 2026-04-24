@@ -11,7 +11,9 @@ type LibraryState = {
   error: string | null
   trackMeta: Record<string, { artist: string; album: string; title: string } | null>
   trackDurations: Record<string, number | null>
+  likedPaths: Record<string, number>
   setCollections: (collections: Collection[]) => void
+  setLikedPaths: (likedPaths: Record<string, number>) => void
   addCollection: (title: string) => string
   updateCollectionTitle: (id: string, title: string) => void
   deleteCollection: (id: string) => void
@@ -23,6 +25,7 @@ type LibraryState = {
   removeItemsFromSelectedCollection: (paths: string[]) => void
   addFoldersToSelectedCollection: (paths: string[]) => void
   selectAudio: (path: string | null) => void
+  toggleLike: (path: string) => void
   setLoading: (loading: boolean) => void
   setError: (err: string | null) => void
 }
@@ -35,7 +38,9 @@ export const useLibrary = create<LibraryState>((set, get) => ({
   error: null,
   trackMeta: {},
   trackDurations: {},
+  likedPaths: {},
   setCollections: (collections) => set({ collections }),
+  setLikedPaths: (likedPaths) => set({ likedPaths }),
   addCollection: (title) => {
     const id = Date.now().toString()
     const newCollection: Collection = { id, title, items: [] }
@@ -156,6 +161,17 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     void window.soundbox.setState({ collections: next })
   },
   selectAudio: (selectedAudio) => set({ selectedAudio }),
+  toggleLike: (path) => {
+    const { likedPaths } = get()
+    const next = { ...likedPaths }
+    if (next[path]) {
+      delete next[path]
+    } else {
+      next[path] = Date.now()
+    }
+    set({ likedPaths: next })
+    void window.soundbox.setState({ likedPaths: next })
+  },
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error })
 }))
