@@ -3,6 +3,16 @@
 All notable changes to this project are documented here.
 This file is generated automatically from [Conventional Commits](https://www.conventionalcommits.org/) — run `npm run changelog` to regenerate.
 
+## [v1.0.4](https://github.com/limboy/soundbox/compare/v1.0.3...v1.0.4) - 2026-04-24
+
+### Features
+
+- add track liking functionality with persistence and UI support ([f8d3048](https://github.com/limboy/soundbox/commit/f8d3048c355baab1657d4128caad25094e2301e0))
+
+### Documentation
+
+- update CHANGELOG for v1.0.3 ([0c4288a](https://github.com/limboy/soundbox/commit/0c4288acc413feaf19a8048605f07a17d02d83c8))
+
 ## [v1.0.3](https://github.com/limboy/soundbox/compare/v1.0.2...v1.0.3) - 2026-04-23
 
 ### Features
