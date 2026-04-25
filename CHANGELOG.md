@@ -3,6 +3,16 @@
 All notable changes to this project are documented here.
 This file is generated automatically from [Conventional Commits](https://www.conventionalcommits.org/) — run `npm run changelog` to regenerate.
 
+## [v1.0.5](https://github.com/limboy/soundbox/compare/v1.0.4...v1.0.5) - 2026-04-25
+
+### Documentation
+
+- update CHANGELOG for v1.0.4 ([27f7498](https://github.com/limboy/soundbox/commit/27f7498cfcd235f180c066c3aea09de540efc455))
+
+### Styles
+
+- update size and minSize constraints for audio list columns ([e2a0c5e](https://github.com/limboy/soundbox/commit/e2a0c5e258749ed05b3d17a0fc020062877dbec5))
+
 ## [v1.0.4](https://github.com/limboy/soundbox/compare/v1.0.3...v1.0.4) - 2026-04-24
 
 ### Features
