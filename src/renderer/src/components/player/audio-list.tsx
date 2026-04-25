@@ -173,7 +173,8 @@ export function AudioList(): React.JSX.Element {
             </div>
           )
         },
-        size: 30,
+        size: 50,
+        minSize: 50,
         enableHiding: false
       },
       {
@@ -216,7 +217,8 @@ export function AudioList(): React.JSX.Element {
             </div>
           )
         },
-        size: 30,
+        size: 60,
+        minSize: 60,
         enableHiding: true
       },
       {
